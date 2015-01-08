@@ -53,9 +53,12 @@ class RootPackageBuilder implements RootPackageBuilderInterface {
     $repositories = isset($core_package['repositories']) ? $core_package['repositories'] : array();
 
     foreach ($extension_packages as $extension_package) {
-      if (isset($extension_package['require'])) {
-        $requirements = array_merge($extension_package['require'], $requirements);
+      if (empty($extension_package['require'])) {
+        // The other keys make sense only if at least one package is required.
+        continue;
       }
+
+      $requirements = array_merge($extension_package['require'], $requirements);
       if (isset($extension_package['minimum-stability'])) {
         $stability_constraints[] = $extension_package['minimum-stability'];
       }
