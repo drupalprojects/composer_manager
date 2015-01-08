@@ -6,11 +6,6 @@
     "license": "GPL-2.0",
     "authors": [
         {
-            "name": "Chris Pliakas",
-            "email": "opensource@chrispliakas.com",
-            "role": "Project Lead"
-        },
-        {
             "name": "See contributors",
             "homepage": "http://drupal.org/node/1929436/committers",
             "role": "Developer"

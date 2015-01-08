@@ -1,7 +1,5 @@
 name: 'Composer Manager'
-description: 'Provides consolidated management of third-party, Composer-compatible packages that are required by contributed modules.'
+description: 'Allows contributed modules to require external libraries via Composer.'
 package: 'Composer'
 core: '8.x'
 type: module
-
-configure: 'composer_manager.settings'

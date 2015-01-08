@@ -2,53 +2,56 @@
 
 /**
  * @file
- * Contains \Drupal\composer_manager\Controller\PackageController.
+ * Contains \Drupal\composer_manager\Controller\Packages.
  */
 
 namespace Drupal\composer_manager\Controller;
 
 use Drupal\composer_manager\Form\RebuildForm;
-use Drupal\composer_manager\ComposerPackagesInterface;
+use Drupal\composer_manager\PackageManagerInterface;
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Component\Utility\String;
 use Drupal\Component\Utility\Xss;
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Controller for displaying the list of composer packages.
+ * Controller for displaying the list of required packages.
  */
 class PackageController extends ControllerBase {
 
   /**
+   * The module handler.
+   *
    * @var \Drupal\Core\Extension\ModuleHandlerInterface
    */
   protected $moduleHandler;
 
   /**
-   * @var \Drupal\Core\Config\ConfigFactory
+   * The package manager.
+   *
+   * @var \Drupal\composer_manager\PackageManagerInterface
    */
-  protected $configFactory;
+  protected $packageManager;
 
   /**
-   * @var \Drupal\composer_manager\ComposerPackagesInterface
+   * The module data from system_get_info().
+   *
+   * @var array
    */
-  protected $packages;
+  protected $moduleData;
 
   /**
-   * Constructs a \Drupal\composer_manager\Controller\Packages object.
+   * Constructs a PackageController object.
    *
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   * @param \Drupal\composer_manager\ComposerPackagesInterface $packages
+   * @param \Drupal\composer_manager\PackageManagerInterface $packages
    */
-  public function __construct(ModuleHandlerInterface $module_handler, ConfigFactoryInterface $config_factory, ComposerPackagesInterface $packages) {
+  public function __construct(ModuleHandlerInterface $module_handler, PackageManagerInterface $packageManager) {
     $this->moduleHandler = $module_handler;
-    $this->configFactory = $config_factory;
-    $this->packages = $packages;
+    $this->packageManager = $packageManager;
   }
 
   /**
@@ -57,148 +60,76 @@ class PackageController extends ControllerBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('module_handler'),
-      $container->get('config.factory'),
-      $container->get('composer_manager.packages')
+      $container->get('composer_manager.package_manager')
     );
   }
 
   /**
-   * Shows the status of all packages required by contrib.
+   * Shows the status of all required packages.
    *
    * @return array
    *   Returns a render array as expected by drupal_render().
    */
   public function page() {
-    $build = array();
-    $error = FALSE;
-
-    $header = array(
-      'package' => $this->t('Package'),
-      'version' => $this->t('Installed Version'),
-      'requirement' => $this->t('Version Required by Module'),
-    );
+    if (!composer_manager_initialized()) {
+      $message = t("Composer Manager needs to be initialized before usage. Run the module's <code>init.sh</code> script or <code>drush composer-manager-init</code> on the command line.");
+      drupal_set_message($message, 'warning');
+      return array();
+    }
 
     try {
-      $required = $this->packages->getRequired();
-      $installed = $this->packages->getInstalled();
-      $dependents = $this->packages->getDependencies();
-      $combined = array_unique(array_merge(array_keys($required), array_keys($installed)));
+      $packages = $this->packageManager->getRequiredPackages();
     }
     catch (\RuntimeException $e) {
-      $error = TRUE;
-      drupal_set_message(Xss::filterAdmin($e->getMessage()));
-      watchdog_exception('composer_manager', $e);
-      $combined = array();
+      drupal_set_message(Xss::filterAdmin($e->getMessage()), 'error');
+      $packages = array();
     }
 
-    // Whether a Composer update is needed.
-    $update_needed = FALSE;
-    // Whether different modules require different versions of the same package.
-    $has_conflicts = FALSE;
-
     $rows = array();
-    foreach ($combined as $package_name) {
-      $is_installed = isset($installed[$package_name]);
-
-      // If the package is installed but has no dependents and is not required
-      // by any modules, then the module that required it has most likely been
-      // disabled and the package will be uninstalled on the next Composer
-      // update.
-      $not_required = $is_installed && !isset($dependents[$package_name]) && empty($required[$package_name]);
-
-      // Get the package name and description.
-      if ($is_installed && !empty($installed[$package_name]['homepage'])) {
+    foreach ($packages as $package_name => $package) {
+      // Prepare the package name and description.
+      if (!empty($package['homepage'])) {
         $options = array('attributes' => array('target' => '_blank'));
-        $name = $this->l($package_name, Url::fromUri($installed[$package_name]['homepage']), $options);
+        $name = $this->l($package_name, Url::fromUri($package['homepage']), $options);
       }
       else {
         $name = String::checkPlain($package_name);
       }
-      if ($is_installed && !empty($installed[$package_name]['description'])) {
-        $name .= '<div class="description">' . String::checkPlain($installed[$package_name]['description']) . '</div>';
+      if (!empty($package['description'])) {
+        $name .= '<div class="description">' . String::checkPlain($package['description']) . '</div>';
       }
 
-      // Get the version required by the module.
-      $has_conflict = FALSE;
-      if ($not_required) {
-        $update_needed = TRUE;
-        $requirement = $this->t('No longer required');
-        $requirement .= '<div class="description">' . $this->t('Package will be removed on the next Composer update') . '</div>';
-      }
-      elseif (isset($required[$package_name])) {
+      // Prepare the installed and required versions.
+      $installed_version = $package['version'] ? $package['version'] : $this->t('Not installed');
+      $required_version = $this->buildRequiredVersion($package['constraint'], $package['required_by']);
 
-        // Sets message based on whether there is a potential version conflict.
-        $has_conflict = count($required[$package_name]) > 1;
-        if ($has_conflict) {
-          $has_conflicts = TRUE;
-          $requirement = $this->t('Potential version conflict');
-        }
-        else {
-          $requirement = String::checkPlain(key($required[$package_name]));
-        }
-
-        // Build the list of modules that require this package.
-        $modules = array();
-        $requirement .= '<div class="description">';
-        foreach ($required[$package_name] as $version => $module_names) {
-          foreach ($module_names as $module_name) {
-            $module_info = system_get_info('module', $module_name);
-            if ('drupal' == $module_name) {
-              $modules[] = 'Drupal';
-            }
-            elseif (isset($module_info['name'])) {
-              $modules[] = String::checkPlain($module_info['name']);
-            }
-            else {
-              $modules[] = String::checkPlain($module_name);
-            }
-          }
-        }
-        $requirement .= $this->t('Required by: ') . join(', ', $modules);
-        $requirement .= '</div>';
+      // Prepare the row classes.
+      $class = array();
+      if (empty($package['version'])) {
+        $class[] = 'error';
       }
-      else {
-        // This package is a dependency of a package directly required by a
-        // module. Therefore we cannot detect the required version without using
-        // the Composer tool which is expensive and too slow for the web.
-        $requirement = $this->t('N/A');
-        $requirement .= '<div class="description">' . $this->t('Dependency for other packages') . '</div>';
-      }
-
-      // Get the version that is installed.
-      if ($is_installed) {
-        $instaled_version = String::checkPlain($installed[$package_name]['version']);
-      }
-      else {
-        $update_needed = TRUE;
-        $instaled_version = $this->t('Not installed');
-      }
-
-      // Set the row status.
-      if (!$is_installed) {
-        $class = array('error');
-      }
-      elseif ($has_conflict || $not_required) {
-        $class = array('warning');
-      }
-      else {
-        $class = array('ok');
+      elseif (empty($package['required_by'])) {
+        $class[] = 'warning';
       }
 
       $rows[$package_name] = array(
         'class' => $class,
         'data' => array(
           'package' => SafeMarkup::set($name),
-          'installed' => $instaled_version,
-          'requirement' => SafeMarkup::set($requirement),
+          'installed_version' => $installed_version,
+          'required_version' => SafeMarkup::set($required_version),
         ),
       );
     }
 
-    ksort($rows);
+    $build = array();
     $build['packages'] = array(
       '#theme' => 'table',
-      '#header' => $header,
+      '#header' => array(
+        'package' => $this->t('Package'),
+        'installed_version' => $this->t('Installed Version'),
+        'required_version' => $this->t('Required Version'),
+      ),
       '#rows' => $rows,
       '#caption' => $this->t('Status of Packages Managed by Composer'),
       '#attributes' => array(
@@ -206,25 +137,69 @@ class PackageController extends ControllerBase {
       ),
     );
 
-    $rebuild_form = new RebuildForm($this->configFactory);
-    $build['refresh_form'] = \Drupal::formBuilder()->getForm($rebuild_form);
-
-    // Get requirements so we can display them on the packages page.
+    // Display any errors returned by hook_requirements().
     $this->moduleHandler->loadInclude('composer_manager', 'install');
     $requirements = composer_manager_requirements('runtime');
-
-    if (REQUIREMENT_INFO != $requirements['composer_manager']['severity']) {
-      drupal_set_message($requirements['composer_manager']['description'], 'error');
-    }
-    elseif ($update_needed) {
-      $args = array('!command' => 'update', '@url' => 'http://drupal.org/project/composer_manager');
-      drupal_set_message(t('Packages need to be installed or removed by running Composer\'s <code>!command</code> command.<br/>Refer to the instructions on the <a href="@url" target="_blank">Composer Manager project page</a> for updating packages.', $args), 'warning');
-    }
-    if ($has_conflicts) {
-      drupal_set_message(t('Potentially conflicting versions of the same package are required by different modules.'), 'warning');
+    if ($requirements['composer_manager']['severity'] == REQUIREMENT_ERROR) {
+      drupal_set_message($requirements['composer_manager']['description'], 'warning');
     }
 
     return $build;
+  }
+
+  /**
+   * Builds the required version column.
+   *
+   * @param string $contraint
+   *   The package constraint.
+   * @param array $required_by
+   *   The names of dependent packages.
+   *
+   * @return string
+   *   The requirements string in HTML format.
+   */
+  protected function buildRequiredVersion($constraint, array $required_by) {
+    // Filter out non-Drupal packages.
+    $drupal_required_by = array_filter($required_by, function($package_name) {
+      return strpos($package_name, 'drupal/') !== FALSE;
+    });
+
+    if (empty($required_by)) {
+      $constraint = $this->t('No longer required');
+      $description = $this->t('Package will be removed on the next Composer update');
+    }
+    elseif (empty($drupal_required_by)) {
+      $constraint = $this->t('N/A');
+      $description = $this->t('Dependency for other packages');
+    }
+    else {
+      if (!isset($this->moduleData)) {
+        $this->moduleData = system_get_info('module');
+      }
+
+      $modules = array();
+      foreach ($drupal_required_by as $package_name) {
+        $name_parts = explode('/', $package_name);
+        $module_name = $name_parts[1];
+
+        if ($module_name == 'drupal') {
+          $modules[] = $this->t('Drupal');
+        }
+        elseif (isset($this->moduleData[$module_name])) {
+          $modules[] = String::checkPlain($this->moduleData[$module_name]['name']);
+        }
+        else {
+          $modules[] = String::checkPlain($module_name);
+        }
+      }
+
+      $description = $this->t('Required by: ') . join(', ', $modules);
+    }
+
+    $required_version = $constraint;
+    $required_version .= '<div class="description">' . $description . '</div>';
+
+    return $required_version;
   }
 
 }
