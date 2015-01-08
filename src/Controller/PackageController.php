@@ -169,8 +169,9 @@ class PackageController extends ControllerBase {
       $description = $this->t('Package will be removed on the next Composer update');
     }
     elseif (empty($drupal_required_by)) {
+      // The package is here as a requirement of other packages, list them.
       $constraint = $this->t('N/A');
-      $description = $this->t('Dependency for other packages');
+      $description = $this->t('Required by: ') . join(', ', $required_by);
     }
     else {
       if (!isset($this->moduleData)) {
