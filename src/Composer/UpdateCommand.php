@@ -8,7 +8,7 @@ use Composer\Console\Application;
 /**
  * The command for 'composer drupal-update'.
  *
- * Regenerates the root package (composer.json), then calls 'composer update'.
+ * Regenerates the root package, then calls 'composer update'.
  */
 class UpdateCommand {
 
@@ -38,8 +38,8 @@ class UpdateCommand {
     require __DIR__ . '/../RootPackageBuilderInterface.php';
     require __DIR__ . '/../RootPackageBuilder.php';
 
-    // Composer always runs inside the root directory.
-    $root = getcwd();
+    // Composer runs in core/, so the root is one directory above.
+    $root = realpath(getcwd() . '/../');
     $root_package_builder = new \Drupal\composer_manager\RootPackageBuilder($root);
     $package_manager = new \Drupal\composer_manager\PackageManager($root, $root_package_builder);
 

@@ -76,7 +76,7 @@ class RootPackageBuilder implements RootPackageBuilderInterface {
       $root_package['repositories'] = array_unique($repositories, SORT_REGULAR);
     }
     // Re-add our update command so that it works on the next run.
-    $src_path = str_replace($this->root . '/', '', __DIR__);
+    $src_path = str_replace($this->root . '/', '../', __DIR__);
     $root_package['autoload']['psr-4']['Drupal\\composer_manager\\Composer\\'] =  $src_path . '/Composer';
     $root_package['scripts'] = array(
       'drupal-update' => 'Drupal\\composer_manager\\Composer\\UpdateCommand::execute',

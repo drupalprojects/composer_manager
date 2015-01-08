@@ -15,14 +15,16 @@ interface PackageManagerInterface {
   /**
    * Returns the core package.
    *
-   * Right now composer.json in Drupal's root directory represents both the
-   * core and root package. Once #1975220 and #2380389 land, the core package
-   * will be in core/composer.json, leaving composer.json to be the overwritable
-   * root package. Until that happens, this module copies composer.json
-   * to composer.core.json and reads the core package from there.
+   * Right now core/composer.json represents both the core and root package
+   * because the actual root package added in #1975220 isn't functional yet.
+   * As a temporary measure, the module copies core/composer.json to
+   * core/composer.core.json, and then treats core/composer.json as the
+   * overwritable root package.
+   *
+   * @todo Clean up once #2372815 is done and the root package is functional.
    *
    * @return array
-   *   The core package, loaded from composer.core.json.
+   *   The core package, loaded from core/composer.core.json.
    */
   public function getCorePackage();
 

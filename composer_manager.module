@@ -16,7 +16,7 @@
  */
 function composer_manager_initialized($root = NULL) {
   $root = $root ?: \Drupal::root();
-  return file_exists($root . '/composer.core.json');
+  return file_exists($root . '/core/composer.core.json');
 }
 
 /**
@@ -34,18 +34,18 @@ function composer_manager_initialized($root = NULL) {
  */
 function composer_manager_initialize($root = NULL) {
   $root = $root ?: \Drupal::root();
-  if (!file_exists($root . '/composer.core.json')) {
-    $success = copy($root . '/composer.json', $root . '/composer.core.json');
+  if (!file_exists($root . '/core/composer.core.json')) {
+    $success = copy($root . '/core/composer.json', $root . '/core/composer.core.json');
     if (!$success) {
-      throw new \RuntimeException('Could not copy composer.json to composer.core.json');
+      throw new \RuntimeException('Could not copy core/composer.json to core/composer.core.json');
     }
   }
 
-  $module_path = str_replace($root . '/', '', __DIR__);
-  $package = \Drupal\composer_manager\JsonFile::read($root . '/composer.json');
+  $module_path = str_replace($root . '/', '../', __DIR__);
+  $package = \Drupal\composer_manager\JsonFile::read($root . '/core/composer.json');
   $package['autoload']['psr-4']['Drupal\\composer_manager\\Composer\\'] = $module_path . '/src/Composer';
   $package['scripts'] = array(
     'drupal-update' => 'Drupal\\composer_manager\\Composer\\UpdateCommand::execute',
   );
-  \Drupal\composer_manager\JsonFile::write($root . '/composer.json', $package);
+  \Drupal\composer_manager\JsonFile::write($root . '/core/composer.json', $package);
 }

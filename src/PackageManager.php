@@ -49,7 +49,7 @@ class PackageManager implements PackageManagerInterface {
    */
   public function getCorePackage() {
     if (!isset($this->packages['core'])) {
-      $this->packages['core'] = JsonFile::read($this->root . '/composer.core.json');
+      $this->packages['core'] = JsonFile::read($this->root . '/core/composer.core.json');
     }
 
     return $this->packages['core'];
@@ -197,10 +197,12 @@ class PackageManager implements PackageManagerInterface {
    * {@inheritdoc}
    */
   public function rebuildRootPackage() {
+    // See the getCorePackage() interface docblock for an explanation of why
+    // we're writing the root package to core/composer.json.
     $core_package = $this->getCorePackage();
     $extension_packages = $this->getExtensionPackages();
     $root_package = $this->rootPackageBuilder->build($core_package, $extension_packages);
-    JsonFile::write($this->root . '/composer.json', $root_package);
+    JsonFile::write($this->root . '/core/composer.json', $root_package);
   }
 
 }
