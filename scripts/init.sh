@@ -40,5 +40,5 @@ function find_root() {
     }
   }
 
-  return $found ? $rootPath : NULL;
+  return $found ? realpath($rootPath) : NULL;
 }

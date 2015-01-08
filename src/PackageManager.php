@@ -66,7 +66,7 @@ class PackageManager implements PackageManagerInterface {
 
       $this->packages['extension'] = array();
       foreach ($extensions as $extension_name => $extension) {
-        $filename = $extension->getPath() . '/composer.json';
+        $filename = $this->root . '/' . $extension->getPath() . '/composer.json';
         if (is_readable($filename)) {
           $this->packages['extension'][$extension_name] = JsonFile::read($filename);
         }
