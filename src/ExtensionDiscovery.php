@@ -116,6 +116,15 @@ class ExtensionDiscovery extends BaseExtensionDiscovery {
   }
 
   /**
+   * Resets the internal static cache.
+   *
+   * Used by unit tests to ensure a clean slate.
+   */
+  public function resetCache() {
+    static::$files = array();
+  }
+
+  /**
    * Returns an array of all site directories.
    *
    * @return array
