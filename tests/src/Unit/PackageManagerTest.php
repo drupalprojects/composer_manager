@@ -148,6 +148,7 @@ class PackageManagerTest extends UnitTestCase {
 
   /**
    * @covers ::getRequiredPackages
+   * @covers ::processRequiredPackages
    */
   public function testRequiredPackages() {
     $expected_packages = array(
