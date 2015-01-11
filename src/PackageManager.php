@@ -133,9 +133,26 @@ class PackageManager implements PackageManagerInterface {
    *   The processed packages.
    */
   protected function processRequiredPackages(array $packages) {
+    foreach ($packages as $package_name => $package) {
+      // Ensure the presence of all keys.
+      $packages[$package_name] += array(
+        'constraint' => '',
+        'description' => '',
+        'homepage' => '',
+        'require' => array(),
+        'required_by' => array(),
+        'version' => '',
+      );
+      // Sort the keys to ensure consistent results.
+      ksort($packages[$package_name]);
+    }
+
+    // Sort the packages by package name.
+    ksort($packages);
+
+    // Add information about dependent packages.
     $core_package = $this->getCorePackage();
     $extension_packages = $this->getExtensionPackages();
-    // Add information about dependent packages.
     foreach ($packages as $package_name => $package) {
       // Detect Drupal dependents.
       if (isset($core_package['require'][$package_name])) {
@@ -157,23 +174,6 @@ class PackageManager implements PackageManagerInterface {
         }
       }
     }
-
-    foreach ($packages as $package_name => &$package) {
-      // Ensure the presence of all keys.
-      $package += array(
-        'constraint' => '',
-        'description' => '',
-        'homepage' => '',
-        'require' => array(),
-        'required_by' => array(),
-        'version' => '',
-      );
-      // Sort the keys to ensure consistent results.
-      ksort($package);
-    }
-
-    // Sort the packages by package name.
-    ksort($packages);
 
     return $packages;
   }

@@ -52,7 +52,7 @@ interface PackageManagerInterface {
    *   - constraint: The imposed version constraint (e.g. '>=2.7').
    *   - description: Package description, if known.
    *   - homepage: Package homepage, if known.
-   *   - require: An array of dependencies, if known.
+   *   - require: Package requirements, if known.
    *   - required_by: An array of dependent package names. Empty if the package
    *     is no longer required.
    *   - version: The installed package version. Empty if the package hasn't
