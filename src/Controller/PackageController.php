@@ -183,7 +183,7 @@ class PackageController extends ControllerBase {
         $name_parts = explode('/', $package_name);
         $module_name = $name_parts[1];
 
-        if ($module_name == 'drupal') {
+        if ($module_name == 'core') {
           $modules[] = $this->t('Drupal');
         }
         elseif (isset($this->moduleData[$module_name])) {
