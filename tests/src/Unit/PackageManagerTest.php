@@ -185,9 +185,7 @@ class PackageManagerTest extends UnitTestCase {
         'version' => 'v2.6.3',
       ),
       'symfony/yaml' => array(
-        // @todo Fix the PackageManager to take the constraint from the
-        // dependent requirement.
-        'constraint' => '',
+        'constraint' => '2.6.*',
         'description' => '',
         'homepage' => '',
         'require' => array(),
@@ -207,4 +205,5 @@ class PackageManagerTest extends UnitTestCase {
     $needs_update = $this->manager->needsComposerUpdate();
     $this->assertEquals(true, $needs_update);
   }
+
 }

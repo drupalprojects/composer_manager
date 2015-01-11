@@ -171,6 +171,9 @@ class PackageManager implements PackageManagerInterface {
       foreach ($package['require'] as $dependency_name => $constraint) {
         if (isset($packages[$dependency_name])) {
           $packages[$dependency_name]['required_by'][] = $package_name;
+          if (empty($packages[$dependency_name]['constraint'])) {
+            $packages[$dependency_name]['constraint'] = $constraint;
+          }
         }
       }
     }
