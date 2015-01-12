@@ -262,7 +262,7 @@ function composer_manager_relative_autoload_path(&$path, $key, $module) {
   if (NULL === $dir_from) {
     $dir_from = composer_manager_file_dir();
   }
-  $dir_to = DRUPAL_ROOT . '/' . drupal_get_path('module', $module) . '/' . $path;
+  $dir_to = drupal_realpath(DRUPAL_ROOT . '/' . drupal_get_path('module', $module) . '/' . $path);
   $path = composer_manager_relative_dir($dir_to, $dir_from);
 }
 
