@@ -37,7 +37,7 @@ function drush_composer_manager_init() {
  * If the downloaded module contains a composer.json file, update dependencies.
  */
 function composer_manager_drush_pm_post_download($project, $release) {
-  if (!composer_manager_initialized()) {
+  if (!composer_manager_initialized() || getenv('SKIP_COMPOSER_UPDATE')) {
     return;
   }
 
