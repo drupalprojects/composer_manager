@@ -31,7 +31,7 @@ class RootPackageBuilderTest extends UnitTestCase {
   /**
    * @covers ::build
    * @covers ::filterPlatformPackages
-   * @covers ::resolveStabilityConstraint
+   * @covers ::resolveMinimumStabilityProperty
    */
   public function testBuild() {
     $core_package = array(

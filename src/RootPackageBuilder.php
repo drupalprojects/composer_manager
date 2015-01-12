@@ -48,10 +48,17 @@ class RootPackageBuilder implements RootPackageBuilderInterface {
    */
   public function build(array $core_package, array $extension_packages) {
     $sources = array('drupal');
-    $requirements = $core_package['require'];
-    $stability_constraints = array();
-    $stability_constraints[] = isset($core_package['minimum-stability']) ? $core_package['minimum-stability'] : 'stable';
-    $repositories = isset($core_package['repositories']) ? $core_package['repositories'] : array();
+    // Add defaults for any properties not declared by the core package.
+    $core_package += array(
+      'minimum-stability' => 'stable',
+      'repositories' => array(),
+    );
+    // Collect properties from all packages, starting with the core package.
+    $properties = array(
+      'require' => $core_package['require'],
+      'minimum-stability' => array($core_package['minimum-stability']),
+      'repositories' => $core_package['repositories'],
+    );
 
     foreach ($extension_packages as $extension_name => $extension_package) {
       if (empty($extension_package['require'])) {
@@ -60,20 +67,20 @@ class RootPackageBuilder implements RootPackageBuilderInterface {
       }
 
       $sources[] = $extension_name;
-      $requirements = array_merge($extension_package['require'], $requirements);
+      $properties['require'] = array_merge($extension_package['require'], $properties['require']);
       if (isset($extension_package['minimum-stability'])) {
-        $stability_constraints[] = $extension_package['minimum-stability'];
+        $properties['minimum-stability'][] = $extension_package['minimum-stability'];
       }
       if (isset($extension_package['repositories'])) {
-        $repositories = array_merge($extension_package['repositories'], $repositories);
+        $properties['repositories'] = array_merge($extension_package['repositories'], $properties['repositories']);
       }
     }
 
     $root_package = $core_package;
-    $root_package['require'] = $this->filterPlatformPackages($requirements);
-    $root_package['minimum-stability'] = $this->resolveStabilityConstraint($stability_constraints);
-    if (!empty($repositories)) {
-      $root_package['repositories'] = array_unique($repositories, SORT_REGULAR);
+    $root_package['require'] = $this->filterPlatformPackages($properties['require']);
+    $root_package['minimum-stability'] = $this->resolveMinimumStabilityProperty($properties['minimum-stability']);
+    if (!empty($properties['repositories'])) {
+      $root_package['repositories'] = array_unique($properties['repositories'], SORT_REGULAR);
     }
     // Re-add our update command so that it works on the next run.
     $src_path = str_replace($this->root . '/', '../', __DIR__);
@@ -113,21 +120,21 @@ class RootPackageBuilder implements RootPackageBuilderInterface {
   }
 
   /**
-   * Resolves the minimum-stability constraint.
+   * Resolves the minimum-stability property.
    *
-   * @param array $stability_constraints
-   *   The constraints. For example, ['stable', 'rc', 'beta'], where 'beta'
-   *   would be the resolved constraint since it is the lowest, therefore
-   *   satisfying the widest range of required packages.
+   * @param array $properties
+   *   The gathered minimum-stability properties.
+   *   For example, ['stable', 'rc', 'beta'], where 'beta' would be selected
+   *   since it is the lowest, satisfying the widest range of required packages.
    *
    * @return string
-   *   The resolved stability constraint.
+   *   The resolved minimum-stability property.
    */
-  protected function resolveStabilityConstraint(array $stability_constraints) {
+  protected function resolveMinimumStabilityProperty(array $properties) {
     $minimum_stability = 'stable';
-    foreach (array_unique($stability_constraints) as $stability_constraint) {
-      if ($this->stability[$stability_constraint] < $this->stability[$minimum_stability]) {
-        $minimum_stability = $stability_constraint;
+    foreach (array_unique($properties) as $property) {
+      if ($this->stability[$property] < $this->stability[$minimum_stability]) {
+        $minimum_stability = $property;
       }
     }
 
