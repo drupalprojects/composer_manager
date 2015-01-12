@@ -73,12 +73,17 @@ class PackageManagerTest extends UnitTestCase {
         'require' => array(
           // symfony/event-dispatcher doesn't really have this requirement,
           // we're lying for test purposes.
-          'symfony/yaml' => '2.6.*',
+          'symfony/yaml' => 'dev-master',
         ),
       ),
       array(
         'name' => 'symfony/yaml',
-        'version' => 'v2.6.3',
+        'version' => 'dev-master',
+        'source' => array(
+          'type' => 'git',
+          'url' => 'https://github.com/symfony/Yaml.git',
+          'reference' => '3346fc090a3eb6b53d408db2903b241af51dcb20',
+        ),
         // description and homepage intentionally left out to make sure
         // getRequiredPackages() can cope with that.
       ),
@@ -180,17 +185,17 @@ class PackageManagerTest extends UnitTestCase {
         'constraint' => '',
         'description' => 'Symfony EventDispatcher Component',
         'homepage' => 'http://symfony.com',
-        'require' => array('symfony/yaml' => '2.6.*'),
+        'require' => array('symfony/yaml' => 'dev-master'),
         'required_by' => array(),
         'version' => 'v2.6.3',
       ),
       'symfony/yaml' => array(
-        'constraint' => '2.6.*',
+        'constraint' => 'dev-master',
         'description' => '',
         'homepage' => '',
         'require' => array(),
         'required_by' => array('symfony/event-dispatcher'),
-        'version' => 'v2.6.3',
+        'version' => 'dev-master#3346fc090a3eb6b53d408db2903b241af51dcb20',
       ),
     );
 
