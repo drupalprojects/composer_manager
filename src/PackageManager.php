@@ -37,11 +37,11 @@ class PackageManager implements PackageManagerInterface {
    * Constructs a PackageManager object.
    *
    * @param string $root
-   * @param \Drupal\composer_manager\RootPackageBuilderInterface $rootPackageBuilder
+   * @param \Drupal\composer_manager\RootPackageBuilderInterface $root_package_builder
    */
-  public function __construct($root, RootPackageBuilderInterface $rootPackageBuilder) {
+  public function __construct($root, RootPackageBuilderInterface $root_package_builder) {
     $this->root = $root;
-    $this->rootPackageBuilder = $rootPackageBuilder;
+    $this->rootPackageBuilder = $root_package_builder;
   }
 
   /**

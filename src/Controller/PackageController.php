@@ -47,11 +47,11 @@ class PackageController extends ControllerBase {
    * Constructs a PackageController object.
    *
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
-   * @param \Drupal\composer_manager\PackageManagerInterface $packages
+   * @param \Drupal\composer_manager\PackageManagerInterface $package_manager
    */
-  public function __construct(ModuleHandlerInterface $module_handler, PackageManagerInterface $packageManager) {
+  public function __construct(ModuleHandlerInterface $module_handler, PackageManagerInterface $package_manager) {
     $this->moduleHandler = $module_handler;
-    $this->packageManager = $packageManager;
+    $this->packageManager = $package_manager;
   }
 
   /**
