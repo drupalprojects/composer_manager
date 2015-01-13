@@ -51,12 +51,14 @@ class RootPackageBuilder implements RootPackageBuilderInterface {
     // Add defaults for any properties not declared by the core package.
     $core_package += array(
       'minimum-stability' => 'stable',
+      'prefer-stable' => TRUE,
       'repositories' => array(),
     );
     // Collect properties from all packages, starting with the core package.
     $properties = array(
       'require' => $core_package['require'],
       'minimum-stability' => array($core_package['minimum-stability']),
+      'prefer-stable' => array($core_package['prefer-stable']),
       'repositories' => $core_package['repositories'],
     );
 
@@ -71,6 +73,9 @@ class RootPackageBuilder implements RootPackageBuilderInterface {
       if (isset($extension_package['minimum-stability'])) {
         $properties['minimum-stability'][] = $extension_package['minimum-stability'];
       }
+      if (isset($extension_package['prefer-stable'])) {
+        $properties['prefer-stable'][] = $extension_package['prefer-stable'];
+      }
       if (isset($extension_package['repositories'])) {
         $properties['repositories'] = array_merge($extension_package['repositories'], $properties['repositories']);
       }
@@ -79,6 +84,7 @@ class RootPackageBuilder implements RootPackageBuilderInterface {
     $root_package = $core_package;
     $root_package['require'] = $this->filterPlatformPackages($properties['require']);
     $root_package['minimum-stability'] = $this->resolveMinimumStabilityProperty($properties['minimum-stability']);
+    $root_package['prefer-stable'] = $this->resolvePreferStableProperty($properties['prefer-stable']);
     if (!empty($properties['repositories'])) {
       $root_package['repositories'] = array_unique($properties['repositories'], SORT_REGULAR);
     }
@@ -139,6 +145,25 @@ class RootPackageBuilder implements RootPackageBuilderInterface {
     }
 
     return $minimum_stability;
+  }
+
+  /**
+   * Resolves the prefer-stable property.
+   *
+   * It's preferable for this property to be set to TRUE, since that prevents
+   * re-downloading of core packages when minimum-stability gets lowered.
+   * Therefore, prefer-stable is resolved to FALSE only if an extension
+   * package explicitly specifies FALSE.
+   *
+   * @param array $properties
+   *   The gathered prefer-stable properties.
+   *   For example, [TRUE, FALSE, TRUE], where FALSE would be selected.
+   *
+   * @return string
+   *   The resolved prefer-stable property.
+   */
+  protected function resolvePreferStableProperty(array $properties) {
+    return in_array(FALSE, $properties) ? FALSE : TRUE;
   }
 
 }

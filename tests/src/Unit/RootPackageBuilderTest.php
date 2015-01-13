@@ -32,6 +32,7 @@ class RootPackageBuilderTest extends UnitTestCase {
    * @covers ::build
    * @covers ::filterPlatformPackages
    * @covers ::resolveMinimumStabilityProperty
+   * @covers ::resolvePreferStableProperty
    */
   public function testBuild() {
     $core_package = array(
@@ -68,6 +69,7 @@ class RootPackageBuilderTest extends UnitTestCase {
           'symfony/config' => '2.6.*',
         ),
         'minimum-stability' => 'beta',
+        'prefer-stable' => FALSE,
         'repositories' => array(
           array(
             'type' => 'pear',
@@ -106,6 +108,8 @@ class RootPackageBuilderTest extends UnitTestCase {
     $this->assertTrue(!isset($root_package['require']['ext-intl']));
     // Confirm that minimum-stability was resolved.
     $this->assertEquals('beta', $root_package['minimum-stability']);
+    // Confirm that prefer-stable was resolved.
+    $this->assertEquals(FALSE, $root_package['prefer-stable']);
     // Confirm that the drupal-update command was added.
     $this->assertNotEmpty($root_package['autoload']['psr-4']['Drupal\\composer_manager\\Composer\\']);
     $this->assertNotEmpty($root_package['scripts']['drupal-update']);
