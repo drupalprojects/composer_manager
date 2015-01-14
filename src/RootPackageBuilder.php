@@ -47,7 +47,7 @@ class RootPackageBuilder implements RootPackageBuilderInterface {
    * {@inheritdoc}
    */
   public function build(array $core_package, array $extension_packages) {
-    $sources = array('drupal');
+    $sources = array($core_package['name']);
     // Add defaults for any properties not declared by the core package.
     $core_package += array(
       'minimum-stability' => 'stable',
@@ -68,7 +68,7 @@ class RootPackageBuilder implements RootPackageBuilderInterface {
         continue;
       }
 
-      $sources[] = $extension_name;
+      $sources[] = $extension_package['name'];
       $properties['require'] = array_merge($extension_package['require'], $properties['require']);
       if (isset($extension_package['minimum-stability'])) {
         $properties['minimum-stability'][] = $extension_package['minimum-stability'];
