@@ -20,7 +20,8 @@ class UpdateCommand {
     $package_manager->rebuildRootPackage();
 
     // Change the requested command to 'update', and rerun composer.
-    $_SERVER['argv'][1] = 'update';
+    $command_index = array_search('drupal-update', $_SERVER['argv']);
+    $_SERVER['argv'][$command_index] = 'update';
     $application = new Application();
     $application->run();
   }
