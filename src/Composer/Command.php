@@ -6,16 +6,24 @@ use Composer\Script\Event;
 use Composer\Console\Application;
 
 /**
- * The command for 'composer drupal-update'.
- *
- * Regenerates the root package, then calls 'composer update'.
+ * Callbacks for 'composer drupal-rebuild' and 'composer drupal-update'.
  */
-class UpdateCommand {
+class Command {
 
   /**
-   * Executes the command.
+   * Rebuilds the root package.
    */
-  public static function execute(Event $event) {
+  public static function rebuild(Event $event) {
+    $package_manager = self::getPackageManager();
+    $package_manager->rebuildRootPackage();
+
+    echo 'The composer.json has been successfuly rebuilt, please run "composer update".' . PHP_EOL;
+  }
+
+  /**
+   * Rebuilds the root package, then calls 'composer update'.
+   */
+  public static function update(Event $event) {
     $package_manager = self::getPackageManager();
     $package_manager->rebuildRootPackage();
 
