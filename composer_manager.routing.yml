@@ -1,5 +1,5 @@
 composer_manager.packages_page:
-  path: '/admin/config/system/composer-manager'
+  path: '/admin/reports/composer-manager'
   defaults:
     _controller: '\Drupal\composer_manager\Controller\PackageController::page'
   requirements:
