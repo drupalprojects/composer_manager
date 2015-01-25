@@ -63,8 +63,8 @@ class RootPackageBuilder implements RootPackageBuilderInterface {
     );
 
     foreach ($extension_packages as $extension_name => $extension_package) {
-      if (empty($extension_package['require'])) {
-        // The other keys make sense only if at least one package is required.
+      if (empty($extension_package['name']) || empty($extension_package['require'])) {
+        // Each package must have a name and at least one requirement.
         continue;
       }
 
