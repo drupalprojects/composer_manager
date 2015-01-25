@@ -84,9 +84,19 @@ class ExtensionDiscoveryTest extends UnitTestCase {
    * @covers ::getSiteDirectories
    */
   public function testScan() {
+    $expected_profiles = array(
+      'commons', 'commerce_kickstart',
+    );
+    $profiles = $this->discovery->scan('profile');
+    $this->assertEquals($expected_profiles, array_keys($profiles));
+
     $expected_extensions = array(
       'test5', 'test2', 'test3', 'test1', 'test4', 'test6',
     );
+    $profile_directories = array_map(function ($profile) {
+      return $profile->getPath();
+    }, $profiles);
+    $this->discovery->setProfileDirectories($profile_directories);
     $extensions = $this->discovery->scan('module');
     $this->assertEquals($expected_extensions, array_keys($extensions));
   }

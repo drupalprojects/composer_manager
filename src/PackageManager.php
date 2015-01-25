@@ -60,9 +60,16 @@ class PackageManager implements PackageManagerInterface {
    */
   public function getExtensionPackages() {
     if (!isset($this->packages['extension'])) {
-      // @todo Do we want to scan themes as well?
       $listing = new ExtensionDiscovery($this->root);
-      $extensions = $listing->scan('module');
+      // Get all profiles, and modules belonging to those profiles.
+      // @todo Scan themes as well?
+      $profiles = $listing->scan('profile');
+      $profile_directories = array_map(function ($profile) {
+        return $profile->getPath();
+      }, $profiles);
+      $listing->setProfileDirectories($profile_directories);
+      $modules = $listing->scan('module');
+      $extensions = $profiles + $modules;
 
       $this->packages['extension'] = array();
       foreach ($extensions as $extension_name => $extension) {

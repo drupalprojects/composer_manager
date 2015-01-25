@@ -31,7 +31,7 @@ interface PackageManagerInterface {
   /**
    * Returns the extension packages.
    *
-   * The composer.json file of each extension under each profile and site
+   * The composer.json file of each extension (module, profile) under each site
    * is loaded and returned.
    *
    * @return array

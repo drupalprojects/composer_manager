@@ -32,6 +32,7 @@ class PackageManagerTest extends UnitTestCase {
       'name' => 'drupal/core',
       'type' => 'drupal-core',
       'require' => array(
+        'symfony/css-selector' => '2.6.*',
         'symfony/config' => '2.6.*',
         'symfony/intl' => '2.6.*',
         'symfony/dependency-injection' => '2.6.*',
@@ -45,6 +46,12 @@ class PackageManagerTest extends UnitTestCase {
       ),
     ),
     'extension' => array(
+      'commerce_kickstart' => array(
+        'name' => 'drupal/commerce_kickstart',
+        'require' => array(
+          'symfony/css-selector' => '2.6.*',
+        ),
+      ),
       'test1' => array(
         'name' => 'drupal/test1',
         'require' => array(
@@ -103,6 +110,13 @@ class PackageManagerTest extends UnitTestCase {
           ),
         ),
       ),
+      'profiles' => array(
+        'commerce_kickstart' => array(
+          'commerce_kickstart.info.yml' => 'type: profile',
+          'commerce_kickstart.profile' => '<?php',
+          'composer.json' => json_encode($this->packages['extension']['commerce_kickstart']),
+        ),
+      ),
       'modules' => array(
         'test1' => array(
           'composer.json' => json_encode($this->packages['extension']['test1']),
@@ -157,6 +171,14 @@ class PackageManagerTest extends UnitTestCase {
    */
   public function testRequiredPackages() {
     $expected_packages = array(
+      'symfony/css-selector' => array(
+        'constraint' => '2.6.*',
+        'description' => '',
+        'homepage' => '',
+        'require' => array(),
+        'required_by' => array('drupal/commerce_kickstart'),
+        'version' => '',
+      ),
       'symfony/config' => array(
         'constraint' => '2.6.*',
         'description' => '',

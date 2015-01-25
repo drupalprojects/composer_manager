@@ -20,21 +20,9 @@ class ExtensionDiscovery extends BaseExtensionDiscovery {
    * Compared to the parent method:
    * - doesn't scan core/ because composer_manager doesn't need to care about
    *   core extensions (core already ships with their dependencies).
-   * - scans all (non-core) profiles for extensions.
    * - scans all sites (to accomodate the poor souls still using multisite).
    */
   public function scan($type, $include_tests = NULL) {
-    if ($type == 'profile') {
-      $this->profileDirectories = array();
-    }
-    else {
-      // Get all non-core profiles.
-      $profiles = $this->scan('profile');
-      $this->profileDirectories = array_map(function ($profile) {
-        return $profile->getPath();
-      }, $profiles);
-    }
-
     $searchdirs[static::ORIGIN_SITES_ALL] = 'sites/all';
     $searchdirs[static::ORIGIN_ROOT] = '';
     // Add all site directories, so that in a multisite environment each site
