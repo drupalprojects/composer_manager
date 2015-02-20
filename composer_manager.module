@@ -234,3 +234,30 @@ function composer_manager_beta5_compatibility() {
     variable_set('composer_manager_vendor_dir', 'sites/all/libraries/composer');
   }
 }
+
+/**
+ * Return the URI to the composer.lock file.
+ *
+ * @return string|bool
+ *   The URI to the composer.lock file, usually in public://. Returns FALSE if
+ *   the lock file cannot be read.
+ */
+function composer_manager_lock_file() {
+  $dir_uri = variable_get('composer_manager_file_dir', file_default_scheme() . '://composer');
+  $lock_file = $dir_uri . '/composer.lock';
+
+  // Make sure we can read composer.lock and it's valid.
+  if (file_exists($lock_file) && is_readable($lock_file)) {
+    $json = file_get_contents($lock_file);
+    $decoded = drupal_json_decode($json);
+    if (!is_array($decoded)) {
+      return FALSE;
+    }
+  }
+  else {
+    return FALSE;
+  }
+
+  return $lock_file;
+}
+

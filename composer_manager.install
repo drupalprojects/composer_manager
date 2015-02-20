@@ -25,6 +25,14 @@ function composer_manager_uninstall() {
 }
 
 /**
+ * Implements hook_enable().
+ */
+function composer_manager_enable() {
+  $t = get_t();
+  drupal_set_message($t('It is recommended to enable the Composer Manager Security Advisory module to automatically check for security updates.'));
+}
+
+/**
  * Implements hook_requirements().
  */
 function composer_manager_requirements($phase) {
