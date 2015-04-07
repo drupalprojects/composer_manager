@@ -147,18 +147,23 @@ function composer_manager_has_composer_file(array $modules) {
 
 /**
  * Registers the autoloader for all third-party packages.
+ *
+ * @return \Composer\Autoload\ClassLoader()
+ *   The ClassLoader instance.
  */
 function composer_manager_register_autoloader() {
   static $registered = FALSE;
+  $autoloader = composer_manager_vendor_dir() . '/autoload.php';
+
   if (!$registered) {
-    $autoloader = composer_manager_vendor_dir() . '/autoload.php';
     if (!file_exists($autoloader)) {
       $message = t('Autoloader not found: @file', array('@file' => $autoloader));
       throw new \RuntimeException($message);
     }
     $registered = TRUE;
-    require $autoloader;
   }
+
+  return require $autoloader;
 }
 
 /**

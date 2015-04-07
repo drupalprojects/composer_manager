@@ -11,17 +11,9 @@ use SensioLabs\Security\SecurityChecker;
  * Implements hook_composer_dependencies_install().
  */
 function composer_manager_sa_composer_dependencies_install() {
-  // When the module is being enabled, this hook is still called, but
-  // SecurityChecker might be cached as being unavailable. We need to wait until
-  // caches are cleared for this hook to work.
-  if (class_exists('SensioLabs\Security\SecurityChecker')) {
-    // This hook is only called with Drush, so we know this function is safe to
-    // call.
-    composer_manager_sa_print();
-  }
-  else {
-    drush_log(t('SensioLabs Security Checker is not available. If Composer Manager Security Advisories is being installed, run drush composer-sa after clearing caches to check for updates.'), 'warning');
-  }
+  // This hook is only called with Drush, so we know this function is safe to
+  // call.
+  composer_manager_sa_print();
 }
 
 /**
