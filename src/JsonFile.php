@@ -7,7 +7,7 @@
 
 namespace Drupal\composer_manager;
 
-use Drupal\Component\Utility\String;
+use Drupal\Component\Utility\SafeMarkup;
 
 /**
  * Reads and writes json files.
@@ -25,7 +25,7 @@ final class JsonFile {
    */
   public static function read($filename) {
     if (!is_readable($filename)) {
-      throw new \RuntimeException(String::format('@filename is not readable.', array('@filename' => $filename)));
+      throw new \RuntimeException(SafeMarkup::format('@filename is not readable.', array('@filename' => $filename)));
     }
 
     $json = file_get_contents($filename);
@@ -57,7 +57,7 @@ final class JsonFile {
    */
   public static function write($filename, array $data) {
     if (!is_writable($filename)) {
-      throw new \RuntimeException(String::format('@filename is not writable.', array('@filename' => $filename)));
+      throw new \RuntimeException(SafeMarkup::format('@filename is not writable.', array('@filename' => $filename)));
     }
 
     $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -67,7 +67,7 @@ final class JsonFile {
 
     $bytes = file_put_contents($filename, $json);
     if ($bytes === FALSE) {
-      throw new \RuntimeException(String::format('Could not write to @filename', array('@filename' => $filename)));
+      throw new \RuntimeException(SafeMarkup::format('Could not write to @filename', array('@filename' => $filename)));
     }
 
     return $bytes;

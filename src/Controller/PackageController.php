@@ -10,7 +10,6 @@ namespace Drupal\composer_manager\Controller;
 use Drupal\composer_manager\Form\RebuildForm;
 use Drupal\composer_manager\PackageManagerInterface;
 use Drupal\Component\Utility\SafeMarkup;
-use Drupal\Component\Utility\String;
 use Drupal\Component\Utility\Xss;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -93,10 +92,10 @@ class PackageController extends ControllerBase {
         $name = $this->l($package_name, Url::fromUri($package['homepage']), $options);
       }
       else {
-        $name = String::checkPlain($package_name);
+        $name = SafeMarkup::checkPlain($package_name);
       }
       if (!empty($package['description'])) {
-        $name .= '<div class="description">' . String::checkPlain($package['description']) . '</div>';
+        $name .= '<div class="description">' . SafeMarkup::checkPlain($package['description']) . '</div>';
       }
 
       // Prepare the installed and required versions.
@@ -187,10 +186,10 @@ class PackageController extends ControllerBase {
           $modules[] = $this->t('Drupal');
         }
         elseif (isset($this->moduleData[$module_name])) {
-          $modules[] = String::checkPlain($this->moduleData[$module_name]['name']);
+          $modules[] = SafeMarkup::checkPlain($this->moduleData[$module_name]['name']);
         }
         else {
-          $modules[] = String::checkPlain($module_name);
+          $modules[] = SafeMarkup::checkPlain($module_name);
         }
       }
 
