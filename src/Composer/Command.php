@@ -4,6 +4,7 @@ namespace Drupal\composer_manager\Composer;
 
 use Composer\Script\Event;
 use Composer\Console\Application;
+use Drupal\Component\FileCache\FileCacheFactory;
 
 /**
  * Callbacks for 'composer drupal-rebuild' and 'composer drupal-update'.
@@ -46,6 +47,9 @@ class Command {
     require __DIR__ . '/../PackageManager.php';
     require __DIR__ . '/../RootPackageBuilderInterface.php';
     require __DIR__ . '/../RootPackageBuilder.php';
+
+    // YAML discovery in core uses FileCache which is not available.
+    FileCacheFactory::setConfiguration(['default' => ['class' => '\Drupal\Component\FileCache\NullFileCache']]);
 
     // Composer runs in core/, so the root is one directory above.
     $root = realpath(getcwd() . '/../');
