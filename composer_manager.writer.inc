@@ -243,7 +243,14 @@ function composer_manager_compare_stability($a, $b) {
  * @throws \RuntimeException
  */
 function composer_manager_file_dir() {
-  $dir_uri = variable_get('composer_manager_file_dir', file_default_scheme() . '://composer');
+  $scheme = file_default_scheme();
+  // Composer can only be run on a locally mounted file system. If the scheme is
+  // set to something different like S3, we fall back to the public scheme.
+  if (!in_array($scheme, array('public', 'private'))) {
+    $scheme = 'public';
+  }
+
+  $dir_uri = variable_get('composer_manager_file_dir', $scheme . '://composer');
   if (!composer_manager_prepare_directory($dir_uri)) {
     throw new \RuntimeException(t('Error creating directory: @dir', array('@dir' => $dir_uri)));
   }
