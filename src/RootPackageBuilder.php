@@ -57,25 +57,19 @@ class RootPackageBuilder implements RootPackageBuilderInterface {
     // Collect properties from all packages, starting with the core package.
     $properties = array(
       'require' => $core_package['require'],
-      'require-dev' => isset($core_package['require-dev']) ? $core_package['require-dev'] : [],
       'minimum-stability' => array($core_package['minimum-stability']),
       'prefer-stable' => array($core_package['prefer-stable']),
       'repositories' => $core_package['repositories'],
     );
 
     foreach ($extension_packages as $extension_name => $extension_package) {
-      if (empty($extension_package['name']) || (empty($extension_package['require']) || empty($extension_package['require-dev']))) {
+      if (empty($extension_package['name']) || empty($extension_package['require'])) {
         // Each package must have a name and at least one requirement.
         continue;
       }
 
       $sources[] = $extension_package['name'];
-      if (isset($extension_package['require'])) {
-        $properties['require'] = array_merge($extension_package['require'], $properties['require']);
-      }
-      if (isset($extension_package['require-dev'])) {
-        $properties['require-dev'] = array_merge($extension_package['require-dev'], $properties['require-dev']);
-      }
+      $properties['require'] = array_merge($extension_package['require'], $properties['require']);
       if (isset($extension_package['minimum-stability'])) {
         $properties['minimum-stability'][] = $extension_package['minimum-stability'];
       }
@@ -89,7 +83,6 @@ class RootPackageBuilder implements RootPackageBuilderInterface {
 
     $root_package = $core_package;
     $root_package['require'] = $this->filterPlatformPackages($properties['require']);
-    $root_package['require-dev'] = $this->filterPlatformPackages($properties['require-dev']);
     $root_package['minimum-stability'] = $this->resolveMinimumStabilityProperty($properties['minimum-stability']);
     $root_package['prefer-stable'] = $this->resolvePreferStableProperty($properties['prefer-stable']);
     if (!empty($properties['repositories'])) {
