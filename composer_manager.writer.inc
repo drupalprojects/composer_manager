@@ -62,6 +62,7 @@ function composer_manager_build_json(array $data) {
         'config'  => array(
           'autoloader-suffix' => 'ComposerManager',
         ),
+        'prefer-stable' => TRUE,
       );
 
       $vendor_dir = composer_manager_relative_vendor_dir();
@@ -80,6 +81,7 @@ function composer_manager_build_json(array $data) {
       'provide',
       'suggest',
       'repositories',
+      'prefer-stable',
     );
 
     foreach ($to_merge as $key) {
