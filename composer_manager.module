@@ -7,9 +7,9 @@
  */
 
 /**
- * Implements hook_init().
+ * Implements hook_boot().
  */
-function composer_manager_init() {
+function composer_manager_boot() {
   try {
     composer_manager_register_autoloader();
   }
@@ -17,6 +17,19 @@ function composer_manager_init() {
     if (!drupal_is_cli()) {
       watchdog_exception('composer_manager', $e);
     }
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function composer_manager_module_implements_alter(&$implementations, $hook) {
+  // We want to place composer_manager first for boot to ensure that the
+  // autoloader is registered before other modules.
+  if ($hook == 'boot' && isset($implementations['composer_manager'])) {
+    $impl = $implementations['composer_manager'];
+    unset($implementations['composer_manager']);
+    $implementations = array('composer_manager' => $impl) + $implementations;
   }
 }
 
