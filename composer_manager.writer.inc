@@ -238,31 +238,6 @@ function composer_manager_compare_stability($a, $b) {
 }
 
 /**
- * Returns the realpath to the Composer file directory.
- *
- * @return string
- *
- * @throws \RuntimeException
- */
-function composer_manager_file_dir() {
-  $scheme = file_default_scheme();
-  // Composer can only be run on a locally mounted file system. If the scheme is
-  // set to something different like S3, we fall back to the public scheme.
-  if (!in_array($scheme, array('public', 'private'))) {
-    $scheme = 'public';
-  }
-
-  $dir_uri = variable_get('composer_manager_file_dir', $scheme . '://composer');
-  if (!composer_manager_prepare_directory($dir_uri)) {
-    throw new \RuntimeException(t('Error creating directory: @dir', array('@dir' => $dir_uri)));
-  }
-  if (!$realpath = drupal_realpath($dir_uri)) {
-    throw new \RuntimeException(t('Error resolving directory: @dir', array('@dir' => $dir_uri)));
-  }
-  return $realpath;
-}
-
-/**
  * Returns the path for the autoloaded directory or class relative to the
  * directory containing the composer.json file.
  */
