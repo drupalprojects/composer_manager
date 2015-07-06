@@ -60,6 +60,13 @@ final class JsonFile {
       throw new \RuntimeException(SafeMarkup::format('@filename is not writable.', array('@filename' => $filename)));
     }
 
+    // Strip empty config elements.
+    foreach ($data as $key => $item) {
+      if (is_array($item) && empty($item)) {
+        unset($data[$key]);
+      }
+    }
+
     $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     if (JSON_ERROR_NONE !== json_last_error()) {
       throw new \UnexpectedValueException('Could not encode JSON: ' . self::getLastErrorMessage());
