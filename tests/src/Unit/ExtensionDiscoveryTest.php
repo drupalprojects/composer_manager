@@ -7,6 +7,7 @@
 
 namespace Drupal\Tests\composer_manager\Unit;
 
+use Drupal\Component\FileCache\FileCacheFactory;
 use Drupal\composer_manager\ExtensionDiscovery;
 use Drupal\Tests\UnitTestCase;
 use org\bovigo\vfs\vfsStream;
@@ -26,6 +27,9 @@ class ExtensionDiscoveryTest extends UnitTestCase {
    * {@inheritdoc}
    */
   public function setUp() {
+    // YAML discovery in core uses FileCache which is not available.
+    FileCacheFactory::setConfiguration(['default' => ['class' => '\Drupal\Component\FileCache\NullFileCache']]);
+
     // Simulate modules in multiple sites and multiple profiles.
     $structure = array(
       'modules' => array(
