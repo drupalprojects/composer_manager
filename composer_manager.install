@@ -23,7 +23,7 @@ function composer_manager_requirements($phase) {
   // Package manager can't run if composer_manager hasn't been initialized,
   // so check for that first.
   if (!composer_manager_initialized()) {
-    $instructions = t("Run the module's <code>init.sh</code> script or <code>drush composer-manager-init</code> on the command line.");
+    $instructions = t("Run the module's <code>init.php</code> script on the command line.");
 
     $requirements['composer_manager']['value'] = t('Not initialized');
     $requirements['composer_manager']['description'] = $instructions;

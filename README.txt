@@ -3,7 +3,8 @@ Composer Manager allows contributed modules to depend on PHP libraries managed v
 Installation
 ------------
 - Install the Composer Manager module
-- Initialize it using the init.sh script (or drush composer-manager-init).
+- Run the module's init.php script on the command line
+  (`php scripts/init.php` from inside the composer_manager module directory).
   This registers the module's Composer command for Drupal core.
 
 Workflow

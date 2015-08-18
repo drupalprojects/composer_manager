@@ -71,7 +71,7 @@ class PackageController extends ControllerBase {
    */
   public function page() {
     if (!composer_manager_initialized()) {
-      $message = t("Composer Manager needs to be initialized before usage. Run the module's <code>init.sh</code> script or <code>drush composer-manager-init</code> on the command line.");
+      $message = t("Composer Manager needs to be initialized before usage. Run the module's <code>init.php</code> script on the command line.");
       drupal_set_message($message, 'warning');
       return array();
     }

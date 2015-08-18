@@ -1,8 +1,8 @@
-#!/usr/bin/env php
 <?php
 
 if (PHP_SAPI !== 'cli') {
-  return;
+  echo 'This script must be run from the command line.' . PHP_EOL;
+  exit;
 }
 
 $root = find_root();

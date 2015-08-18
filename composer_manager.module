@@ -23,9 +23,9 @@ function composer_manager_initialized($root = NULL) {
  * Initializes Composer Manager.
  *
  * This is done by making a backup of core's composer.json, then altering it
- * to register the 'composer drupal-update' command. Executed by drush or
- * init.sh because they runs under the current user (and not the web server
- * user like Drupal), giving them a higher chance of success.
+ * to register the 'composer drupal-update' command. Executed by init.php because
+ * it runs under the current user (and not the web server user like Drupal),
+ * giving it a higher chance of success.
  *
  * @param string $root
  *   The app root.
