@@ -38,7 +38,7 @@ class ExtensionDiscovery extends BaseExtensionDiscovery {
     $include_tests = FALSE;
 
     // From this point on the method is the same as the parent.
-    $files = array();
+    $files = [];
     foreach ($searchdirs as $dir) {
       // Discover all extensions in the directory, unless we did already.
       if (!isset(static::$files[$dir][$include_tests])) {
@@ -67,7 +67,7 @@ class ExtensionDiscovery extends BaseExtensionDiscovery {
    * Used by unit tests to ensure a clean slate.
    */
   public function resetCache() {
-    static::$files = array();
+    static::$files = [];
   }
 
   /**

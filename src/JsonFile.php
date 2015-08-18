@@ -25,12 +25,12 @@ final class JsonFile {
    */
   public static function read($filename) {
     if (!is_readable($filename)) {
-      throw new \RuntimeException(SafeMarkup::format('@filename is not readable.', array('@filename' => $filename)));
+      throw new \RuntimeException(SafeMarkup::format('@filename is not readable.', ['@filename' => $filename]));
     }
 
     $json = file_get_contents($filename);
     if ($json === FALSE) {
-      throw new \RuntimeException(t('Could not read @filename', array('@filename' => $filename)));
+      throw new \RuntimeException(t('Could not read @filename', ['@filename' => $filename]));
     }
 
     $data = json_decode($json, TRUE);
@@ -57,7 +57,7 @@ final class JsonFile {
    */
   public static function write($filename, array $data) {
     if (!is_writable($filename)) {
-      throw new \RuntimeException(SafeMarkup::format('@filename is not writable.', array('@filename' => $filename)));
+      throw new \RuntimeException(SafeMarkup::format('@filename is not writable.', ['@filename' => $filename]));
     }
 
     // Strip empty config elements.
@@ -74,7 +74,7 @@ final class JsonFile {
 
     $bytes = file_put_contents($filename, $json);
     if ($bytes === FALSE) {
-      throw new \RuntimeException(SafeMarkup::format('Could not write to @filename', array('@filename' => $filename)));
+      throw new \RuntimeException(SafeMarkup::format('Could not write to @filename', ['@filename' => $filename]));
     }
 
     return $bytes;

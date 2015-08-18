@@ -31,7 +31,7 @@ class PackageManager implements PackageManagerInterface {
    *
    * @var array
    */
-  protected $packages = array();
+  protected $packages = [];
 
   /**
    * Constructs a PackageManager object.
@@ -71,7 +71,7 @@ class PackageManager implements PackageManagerInterface {
       $modules = $listing->scan('module');
       $extensions = $profiles + $modules;
 
-      $this->packages['extension'] = array();
+      $this->packages['extension'] = [];
       foreach ($extensions as $extension_name => $extension) {
         $filename = $this->root . '/' . $extension->getPath() . '/composer.json';
         if (is_readable($filename)) {
@@ -93,11 +93,11 @@ class PackageManager implements PackageManagerInterface {
       $extension_packages = $this->getExtensionPackages();
       $root_package = $this->rootPackageBuilder->build($core_package, $extension_packages);
 
-      $packages = array();
+      $packages = [];
       foreach ($root_package['require'] as $package_name => $constraint) {
-        $packages[$package_name] = array(
+        $packages[$package_name] = [
           'constraint' => $constraint,
-        );
+        ];
       }
 
       $installed_packages = JsonFile::read($this->root . '/core/vendor/composer/installed.json');
@@ -106,18 +106,18 @@ class PackageManager implements PackageManagerInterface {
         if (!isset($packages[$package_name])) {
           // The installed package is no longer required, and will be removed
           // in the next composer update. Add it in order to inform the end-user.
-          $packages[$package_name] = array(
+          $packages[$package_name] = [
             'constraint' => '',
-          );
+          ];
         }
 
         // Add additional information available only for installed packages.
-        $packages[$package_name] += array(
+        $packages[$package_name] += [
           'description' => !empty($package['description']) ? $package['description'] : '',
           'homepage' => !empty($package['homepage']) ? $package['homepage'] : '',
-          'require' => !empty($package['require']) ? $package['require'] : array(),
+          'require' => !empty($package['require']) ? $package['require'] : [],
           'version' => $package['version'],
-        );
+        ];
         if ($package['version'] == 'dev-master') {
           $packages[$package_name]['version'] .= '#' . $package['source']['reference'];
         }
@@ -142,14 +142,14 @@ class PackageManager implements PackageManagerInterface {
   protected function processRequiredPackages(array $packages) {
     foreach ($packages as $package_name => $package) {
       // Ensure the presence of all keys.
-      $packages[$package_name] += array(
+      $packages[$package_name] += [
         'constraint' => '',
         'description' => '',
         'homepage' => '',
-        'require' => array(),
-        'required_by' => array(),
+        'require' => [],
+        'required_by' => [],
         'version' => '',
-      );
+      ];
       // Sort the keys to ensure consistent results.
       ksort($packages[$package_name]);
     }
@@ -163,12 +163,12 @@ class PackageManager implements PackageManagerInterface {
     foreach ($packages as $package_name => $package) {
       // Detect Drupal dependents.
       if (isset($core_package['require'][$package_name])) {
-        $packages[$package_name]['required_by'] = array($core_package['name']);
+        $packages[$package_name]['required_by'] = [$core_package['name']];
       }
       else {
         foreach ($extension_packages as $extension_name => $extension_package) {
           if (isset($extension_package['require'][$package_name])) {
-            $packages[$package_name]['required_by'] = array($extension_package['name']);
+            $packages[$package_name]['required_by'] = [$extension_package['name']];
             break;
           }
         }

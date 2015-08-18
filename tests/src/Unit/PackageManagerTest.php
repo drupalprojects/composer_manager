@@ -27,115 +27,115 @@ class PackageManagerTest extends UnitTestCase {
    *
    * @var array
    */
-  protected $packages = array(
-    'root' => array(
+  protected $packages = [
+    'root' => [
       'name' => 'drupal/core',
       'type' => 'drupal-core',
-      'require' => array(
+      'require' => [
         'symfony/css-selector' => '2.6.*',
         'symfony/config' => '2.6.*',
         'symfony/intl' => '2.6.*',
         'symfony/dependency-injection' => '2.6.*',
-      ),
-    ),
-    'core' => array(
+      ],
+    ],
+    'core' => [
       'name' => 'drupal/core',
       'type' => 'drupal-core',
-      'require' => array(
+      'require' => [
         'symfony/dependency-injection' => '2.6.*',
-      ),
-    ),
-    'extension' => array(
-      'commerce_kickstart' => array(
+      ],
+    ],
+    'extension' => [
+      'commerce_kickstart' => [
         'name' => 'drupal/commerce_kickstart',
-        'require' => array(
+        'require' => [
           'symfony/css-selector' => '2.6.*',
-        ),
-      ),
-      'test1' => array(
+        ],
+      ],
+      'test1' => [
         'name' => 'drupal/test1',
-        'require' => array(
+        'require' => [
           'symfony/intl' => '2.6.*',
-        ),
-      ),
-      'test2' => array(
+        ],
+      ],
+      'test2' => [
         'name' => 'drupal/test2',
-        'require' => array(
+        'require' => [
           'symfony/config' => '2.6.*',
-        ),
-      ),
-    ),
-    'installed' => array(
-      array(
+        ],
+      ],
+    ],
+    'installed' => [
+      [
         'name' => 'symfony/dependency-injection',
         'version' => 'v2.6.3',
         'description' => 'Symfony DependencyInjection Component',
         'homepage' => 'http://symfony.com',
-      ),
-      array(
+      ],
+      [
         'name' => 'symfony/event-dispatcher',
         'version' => 'v2.6.3',
         'description' => 'Symfony EventDispatcher Component',
         'homepage' => 'http://symfony.com',
-        'require' => array(
+        'require' => [
           // symfony/event-dispatcher doesn't really have this requirement,
           // we're lying for test purposes.
           'symfony/yaml' => 'dev-master',
-        ),
-      ),
-      array(
+        ],
+      ],
+      [
         'name' => 'symfony/yaml',
         'version' => 'dev-master',
-        'source' => array(
+        'source' => [
           'type' => 'git',
           'url' => 'https://github.com/symfony/Yaml.git',
           'reference' => '3346fc090a3eb6b53d408db2903b241af51dcb20',
-        ),
+        ],
         // description and homepage intentionally left out to make sure
-        // getRequiredPackages() can cope with that.
-      ),
-    ),
-  );
+        // getRequiredPackages(] can cope with that.
+      ],
+    ],
+  ];
 
   /**
    * {@inheritdoc}
    */
   public function setUp() {
-    $structure = array(
-      'core' => array(
+    $structure = [
+      'core' => [
         'composer.core.json' => json_encode($this->packages['core']),
-        'vendor' => array(
-          'composer' => array(
+        'vendor' => [
+          'composer' => [
             'installed.json' => json_encode($this->packages['installed']),
-          ),
-        ),
-      ),
-      'profiles' => array(
-        'commerce_kickstart' => array(
+          ],
+        ],
+      ],
+      'profiles' => [
+        'commerce_kickstart' => [
           'commerce_kickstart.info.yml' => 'type: profile',
           'commerce_kickstart.profile' => '<?php',
           'composer.json' => json_encode($this->packages['extension']['commerce_kickstart']),
-        ),
-      ),
-      'modules' => array(
-        'test1' => array(
+        ],
+      ],
+      'modules' => [
+        'test1' => [
           'composer.json' => json_encode($this->packages['extension']['test1']),
           'test1.module' => '<?php',
           'test1.info.yml' => 'type: module',
-        ),
-      ),
-      'sites' => array(
-        'all' => array(
-          'modules' => array(
-            'test2' => array(
+        ],
+      ],
+      'sites' => [
+        'all' => [
+          'modules' => [
+            'test2' => [
               'composer.json' => json_encode($this->packages['extension']['test2']),
               'test2.module' => '<?php',
               'test2.info.yml' => 'type: module',
-            ),
-          ),
-        ),
-      ),
-    );
+            ],
+          ],
+        ],
+      ],
+    ];
     $root = vfsStream::setup('drupal', null, $structure);
     // Mock the root package builder and make it return our prebuilt fixture.
     $root_package_builder = $this->getMockBuilder('Drupal\composer_manager\RootPackageBuilderInterface')
@@ -170,56 +170,56 @@ class PackageManagerTest extends UnitTestCase {
    * @covers ::processRequiredPackages
    */
   public function testRequiredPackages() {
-    $expected_packages = array(
-      'symfony/css-selector' => array(
+    $expected_packages = [
+      'symfony/css-selector' => [
         'constraint' => '2.6.*',
         'description' => '',
         'homepage' => '',
-        'require' => array(),
-        'required_by' => array('drupal/commerce_kickstart'),
+        'require' => [],
+        'required_by' => ['drupal/commerce_kickstart'],
         'version' => '',
-      ),
-      'symfony/config' => array(
+      ],
+      'symfony/config' => [
         'constraint' => '2.6.*',
         'description' => '',
         'homepage' => '',
-        'require' => array(),
-        'required_by' => array('drupal/test2'),
+        'require' => [],
+        'required_by' => ['drupal/test2'],
         'version' => '',
-      ),
-      'symfony/intl' => array(
+      ],
+      'symfony/intl' => [
         'constraint' => '2.6.*',
         'description' => '',
         'homepage' => '',
-        'require' => array(),
-        'required_by' => array('drupal/test1'),
+        'require' => [],
+        'required_by' => ['drupal/test1'],
         'version' => '',
-      ),
-      'symfony/dependency-injection' => array(
+      ],
+      'symfony/dependency-injection' => [
         'constraint' => '2.6.*',
         'description' => 'Symfony DependencyInjection Component',
         'homepage' => 'http://symfony.com',
-        'require' => array(),
-        'required_by' => array('drupal/core'),
+        'require' => [],
+        'required_by' => ['drupal/core'],
         'version' => 'v2.6.3',
-      ),
-      'symfony/event-dispatcher' => array(
+      ],
+      'symfony/event-dispatcher' => [
         'constraint' => '',
         'description' => 'Symfony EventDispatcher Component',
         'homepage' => 'http://symfony.com',
-        'require' => array('symfony/yaml' => 'dev-master'),
-        'required_by' => array(),
+        'require' => ['symfony/yaml' => 'dev-master'],
+        'required_by' => [],
         'version' => 'v2.6.3',
-      ),
-      'symfony/yaml' => array(
+      ],
+      'symfony/yaml' => [
         'constraint' => 'dev-master',
         'description' => '',
         'homepage' => '',
-        'require' => array(),
-        'required_by' => array('symfony/event-dispatcher'),
+        'require' => [],
+        'required_by' => ['symfony/event-dispatcher'],
         'version' => 'dev-master#3346fc090a3eb6b53d408db2903b241af51dcb20',
-      ),
-    );
+      ],
+    ];
 
     $required_packages = $this->manager->getRequiredPackages();
     $this->assertEquals($expected_packages, $required_packages);

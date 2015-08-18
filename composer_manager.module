@@ -44,9 +44,9 @@ function composer_manager_initialize($root = NULL) {
   $module_path = str_replace($root . '/', '../', __DIR__);
   $package = \Drupal\composer_manager\JsonFile::read($root . '/core/composer.json');
   $package['autoload']['psr-4']['Drupal\\composer_manager\\Composer\\'] = $module_path . '/src/Composer';
-  $package['scripts'] = array(
+  $package['scripts'] = [
     'drupal-rebuild' => 'Drupal\\composer_manager\\Composer\\Command::rebuild',
     'drupal-update' => 'Drupal\\composer_manager\\Composer\\Command::update',
-  );
+  ];
   \Drupal\composer_manager\JsonFile::write($root . '/core/composer.json', $package);
 }

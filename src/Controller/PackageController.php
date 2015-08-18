@@ -73,7 +73,7 @@ class PackageController extends ControllerBase {
     if (!composer_manager_initialized()) {
       $message = t("Composer Manager needs to be initialized before usage. Run the module's <code>init.php</code> script on the command line.");
       drupal_set_message($message, 'warning');
-      return array();
+      return [];
     }
 
     try {
@@ -81,14 +81,14 @@ class PackageController extends ControllerBase {
     }
     catch (\RuntimeException $e) {
       drupal_set_message(Xss::filterAdmin($e->getMessage()), 'error');
-      $packages = array();
+      $packages = [];
     }
 
-    $rows = array();
+    $rows = [];
     foreach ($packages as $package_name => $package) {
       // Prepare the package name and description.
       if (!empty($package['homepage'])) {
-        $options = array('attributes' => array('target' => '_blank'));
+        $options = ['attributes' => ['target' => '_blank']];
         $name = $this->l($package_name, Url::fromUri($package['homepage']), $options);
       }
       else {
@@ -103,7 +103,7 @@ class PackageController extends ControllerBase {
       $required_version = $this->buildRequiredVersion($package['constraint'], $package['required_by']);
 
       // Prepare the row classes.
-      $class = array();
+      $class = [];
       if (empty($package['version'])) {
         $class[] = 'error';
       }
@@ -111,30 +111,30 @@ class PackageController extends ControllerBase {
         $class[] = 'warning';
       }
 
-      $rows[$package_name] = array(
+      $rows[$package_name] = [
         'class' => $class,
-        'data' => array(
+        'data' => [
           'package' => SafeMarkup::set($name),
           'installed_version' => $installed_version,
           'required_version' => SafeMarkup::set($required_version),
-        ),
-      );
+        ],
+      ];
     }
 
-    $build = array();
-    $build['packages'] = array(
+    $build = [];
+    $build['packages'] = [
       '#theme' => 'table',
-      '#header' => array(
+      '#header' => [
         'package' => $this->t('Package'),
         'installed_version' => $this->t('Installed Version'),
         'required_version' => $this->t('Required Version'),
-      ),
+      ],
       '#rows' => $rows,
       '#caption' => $this->t('Status of Packages Managed by Composer'),
-      '#attributes' => array(
-        'class' => array('system-status-report'),
-      ),
-    );
+      '#attributes' => [
+        'class' => ['system-status-report'],
+      ],
+    ];
 
     // Display any errors returned by hook_requirements().
     $this->moduleHandler->loadInclude('composer_manager', 'install');
@@ -177,7 +177,7 @@ class PackageController extends ControllerBase {
         $this->moduleData = system_get_info('module');
       }
 
-      $modules = array();
+      $modules = [];
       foreach ($drupal_required_by as $package_name) {
         $name_parts = explode('/', $package_name);
         $module_name = $name_parts[1];

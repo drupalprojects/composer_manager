@@ -35,71 +35,71 @@ class RootPackageBuilderTest extends UnitTestCase {
    * @covers ::resolvePreferStableProperty
    */
   public function testBuild() {
-    $core_package = array(
+    $core_package = [
       'name' => 'drupal/core',
       'type' => 'drupal-core',
       'license' => 'GPL-2.0+',
-      'require' => array(
+      'require' => [
         'sdboyer/gliph' => '0.1.*',
         'symfony/class-loader' => '2.6.*',
         'symfony/css-selector' => '2.6.*',
         'symfony/dependency-injection' => '2.6.*',
-      ),
-    );
-    $extension_packages = array(
-      'test1' => array(
+      ],
+    ];
+    $extension_packages = [
+      'test1' => [
         'name' => 'drupal/test1',
-        'require' => array(
+        'require' => [
           'symfony/intl' => '2.6.*',
           'php' => '~5.5',
           'ext-intl' => '*',
-        ),
+        ],
         'minimum-stability' => 'rc',
-        'repositories' => array(
-          array(
+        'repositories' => [
+          [
             'type' => 'pear',
             'url' => 'http://pear2.php.net',
-          ),
-        ),
-      ),
-      'test2' => array(
+          ],
+        ],
+      ],
+      'test2' => [
         'name' => 'drupal/test2',
-        'require' => array(
+        'require' => [
           'symfony/class-loader' => '2.5.*',
           'symfony/config' => '2.6.*',
-        ),
+        ],
         'minimum-stability' => 'beta',
         'prefer-stable' => FALSE,
-        'repositories' => array(
-          array(
+        'repositories' => [
+          [
             'type' => 'pear',
             'url' => 'http://pear2.php.net',
-          ),
-        ),
-      ),
-      'test3' => array(
+          ],
+        ],
+      ],
+      'test3' => [
         'name' => 'drupal/test3',
-        'repositories' => array(
-          array(
+        'repositories' => [
+          [
             'type' => 'composer',
             'url' => 'http://packages.example.com',
-          ),
-        ),
-      ),
-      'test4' => array(
+          ],
+        ],
+      ],
+      'test4' => [
         'name' => 'drupal/test4',
-        'require' => array(
+        'require' => [
           'symfony/class-loader' => '2.5.*',
           'symfony/config' => '2.6.*',
-        ),
-        'repositories' => array(
-          array(
+        ],
+        'repositories' => [
+          [
             'type' => 'composer',
             'url' => 'http://packages.example.com',
-          ),
-        ),
-      ),
-    );
+          ],
+        ],
+      ],
+    ];
     $root_package = $this->builder->build($core_package, $extension_packages);
 
     // Confirm that the root package has preserved the core package data.
