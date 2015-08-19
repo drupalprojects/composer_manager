@@ -27,8 +27,7 @@ class ExtensionDiscoveryTest extends UnitTestCase {
    * {@inheritdoc}
    */
   public function setUp() {
-    // YAML discovery in core uses FileCache which is not available.
-    FileCacheFactory::setConfiguration(['default' => ['class' => '\Drupal\Component\FileCache\NullFileCache']]);
+    parent::setUp();
 
     // Simulate modules in multiple sites and multiple profiles.
     $structure = [

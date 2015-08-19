@@ -101,6 +101,8 @@ class PackageManagerTest extends UnitTestCase {
    * {@inheritdoc}
    */
   public function setUp() {
+    parent::setUp();
+
     $structure = [
       'core' => [
         'composer.core.json' => json_encode($this->packages['core']),

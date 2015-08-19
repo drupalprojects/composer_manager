@@ -25,6 +25,7 @@ class RootPackageBuilderTest extends UnitTestCase {
    * {@inheritdoc}
    */
   public function setUp() {
+    parent::setUp();
     $this->builder = new RootPackageBuilder('/');
   }
 
