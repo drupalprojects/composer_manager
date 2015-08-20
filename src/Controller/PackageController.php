@@ -81,7 +81,7 @@ class PackageController extends ControllerBase {
     }
     catch (\RuntimeException $e) {
       drupal_set_message(Xss::filterAdmin($e->getMessage()), 'error');
-      $packages = [];
+      return [];
     }
 
     $rows = [];

@@ -100,12 +100,12 @@ class PackageManager implements PackageManagerInterface {
         ];
       }
 
-      $installed_packages = JsonFile::read($this->root . '/core/vendor/composer/installed.json');
+      $installed_packages = JsonFile::read($this->root . '/vendor/composer/installed.json');
       foreach ($installed_packages as $package) {
         $package_name = $package['name'];
         if (!isset($packages[$package_name])) {
-          // The installed package is no longer required, and will be removed
-          // in the next composer update. Add it in order to inform the end-user.
+          // The installed package is a dependency of a dependency, or no longer
+          // required. Add it in order to inform the end-user.
           $packages[$package_name] = [
             'constraint' => '',
           ];
@@ -184,6 +184,10 @@ class PackageManager implements PackageManagerInterface {
         }
       }
     }
+
+    // composer/installers is special, it's added by the RootPackageBuilder but
+    // isn't present in the core or extension packages.
+    $packages['composer/installers']['required_by'] = ['drupal/core'];
 
     return $packages;
   }
