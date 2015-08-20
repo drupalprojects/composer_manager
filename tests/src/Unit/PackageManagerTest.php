@@ -104,13 +104,13 @@ class PackageManagerTest extends UnitTestCase {
     parent::setUp();
 
     $structure = [
+      'vendor' => [
+        'composer' => [
+          'installed.json' => json_encode($this->packages['installed']),
+        ],
+      ],
       'core' => [
         'composer.json' => json_encode($this->packages['core']),
-        'vendor' => [
-          'composer' => [
-            'installed.json' => json_encode($this->packages['installed']),
-          ],
-        ],
       ],
       'profiles' => [
         'commerce_kickstart' => [
@@ -221,6 +221,9 @@ class PackageManagerTest extends UnitTestCase {
         'required_by' => ['symfony/event-dispatcher'],
         'version' => 'dev-master#3346fc090a3eb6b53d408db2903b241af51dcb20',
       ],
+      'composer/installers' => [
+        'required_by' => ['drupal/core'],
+      ],
     ];
 
     $required_packages = $this->manager->getRequiredPackages();
@@ -232,7 +235,7 @@ class PackageManagerTest extends UnitTestCase {
    */
   public function testNeedsComposerUpdate() {
     $needs_update = $this->manager->needsComposerUpdate();
-    $this->assertEquals(true, $needs_update);
+    $this->assertEquals(TRUE, $needs_update);
   }
 
 }
