@@ -2,16 +2,20 @@ Composer Manager allows contributed modules to depend on PHP libraries managed v
 
 Installation
 ------------
-- Install the Composer Manager module
+- Install the Composer Manager module.
 - Run the module's init.php script on the command line
   (`php scripts/init.php` from inside the composer_manager module directory).
   This registers the module's Composer command for Drupal core.
+- Run `composer drupal-install` from the root of your Drupal directory.
+
+Note that once installation has completed you can run phpunit only from the root:
+`./vendor/bin/phpunit -c core`
 
 Workflow
 --------
 - Download the desired modules (such as Commerce).
-- Inside your core/ directory run composer drupal-update.
-  This rebuilds core/composer.json and downloads the new module's requirements.
+- Run `composer drupal-update` from the root of your Drupal directory.
+  This rebuilds composer.json and downloads the new module's requirements.
 - Install the modules.
 
 If you're using Drush to download/install modules, then composer drupal-update

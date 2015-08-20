@@ -20,8 +20,9 @@ function composer_manager_drush_pm_post_download($project, $release) {
     // Peek inside the file to prevent needless rebuilds.
     $file = \Drupal\composer_manager\JsonFile::read($filename);
     if (!empty($file['require'])) {
-      chdir(\Drupal::root() . '/core');
-      passthru('composer drupal-update');
+      chdir(\Drupal::root());
+      $command = is_dir('vendor') ? 'drupal-update' : 'drupal-install';
+      passthru("composer $command");
     }
   }
 }

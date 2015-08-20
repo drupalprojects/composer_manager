@@ -105,7 +105,7 @@ class PackageManagerTest extends UnitTestCase {
 
     $structure = [
       'core' => [
-        'composer.core.json' => json_encode($this->packages['core']),
+        'composer.json' => json_encode($this->packages['core']),
         'vendor' => [
           'composer' => [
             'installed.json' => json_encode($this->packages['installed']),

@@ -17,7 +17,9 @@ interface RootPackageBuilderInterface {
    *
    * The root package is built by adding the requirements of each extension
    * to the core package requirements. The merged composer.json keys are:
-   * 'require', 'minimum-stability', 'prefer-stable' and 'repositories'.
+   * 'require', 'require-dev', minimum-stability', 'prefer-stable' and
+   * 'repositories'. The following keys are transfered from the core package:
+   * 'replace', 'scripts', 'autoload' (with rebased paths).
    *
    * @param array $core_package
    *   The core package.

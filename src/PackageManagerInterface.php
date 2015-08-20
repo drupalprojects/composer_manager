@@ -15,16 +15,8 @@ interface PackageManagerInterface {
   /**
    * Returns the core package.
    *
-   * Right now core/composer.json represents both the core and root package
-   * because the actual root package added in #1975220 isn't functional yet.
-   * As a temporary measure, the module copies core/composer.json to
-   * core/composer.core.json, and then treats core/composer.json as the
-   * overwritable root package.
-   *
-   * @todo Clean up once #2372815 is done and the root package is functional.
-   *
    * @return array
-   *   The core package, loaded from core/composer.core.json.
+   *   The core package, loaded from core/composer.json.
    */
   public function getCorePackage();
 

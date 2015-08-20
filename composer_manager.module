@@ -16,37 +16,30 @@
  */
 function composer_manager_initialized($root = NULL) {
   $root = $root ?: \Drupal::root();
-  return file_exists($root . '/core/composer.core.json');
+  $package = \Drupal\composer_manager\JsonFile::read($root . '/composer.json');
+
+  return isset($package['scripts']['drupal-rebuild']);
 }
 
 /**
  * Initializes Composer Manager.
  *
- * This is done by making a backup of core's composer.json, then altering it
- * to register the 'composer drupal-update' command. Executed by init.php because
- * it runs under the current user (and not the web server user like Drupal),
- * giving it a higher chance of success.
+ * This is done by altering the root package to register the module's commands.
+ * Executed by init.php because it runs under the current user (and not the web
+ * server user like Drupal), giving it a higher chance of success.
  *
  * @param string $root
  *   The app root.
- *
- * @see \Drupal\composer_manager\PackageManager::getCorePackage()
  */
 function composer_manager_initialize($root = NULL) {
   $root = $root ?: \Drupal::root();
-  if (!file_exists($root . '/core/composer.core.json')) {
-    $success = copy($root . '/core/composer.json', $root . '/core/composer.core.json');
-    if (!$success) {
-      throw new \RuntimeException('Could not copy core/composer.json to core/composer.core.json');
-    }
-  }
-
-  $module_path = str_replace($root . '/', '../', __DIR__);
-  $package = \Drupal\composer_manager\JsonFile::read($root . '/core/composer.json');
+  $module_path = str_replace($root . '/', '', __DIR__);
+  $package = \Drupal\composer_manager\JsonFile::read($root . '/composer.json');
   $package['autoload']['psr-4']['Drupal\\composer_manager\\Composer\\'] = $module_path . '/src/Composer';
   $package['scripts'] = [
     'drupal-rebuild' => 'Drupal\\composer_manager\\Composer\\Command::rebuild',
+    'drupal-install' => 'Drupal\\composer_manager\\Composer\\Command::install',
     'drupal-update' => 'Drupal\\composer_manager\\Composer\\Command::update',
   ];
-  \Drupal\composer_manager\JsonFile::write($root . '/core/composer.json', $package);
+  \Drupal\composer_manager\JsonFile::write($root . '/composer.json', $package);
 }
