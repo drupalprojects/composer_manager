@@ -53,6 +53,19 @@ interface PackageManagerInterface {
   public function getRequiredPackages();
 
   /**
+   * Returns whether a composer install is needed.
+   *
+   * It's possible for the user to try and use the module before running
+   * 'composer drupal-install' as specified in the README.
+   *
+   * This method detects that, allowing the user to be reminded.
+   *
+   * @return bool
+   *   True if a composer install is needed, false otherwise.
+   */
+  public function needsComposerInstall();
+
+  /**
    * Returns whether a composer update is needed.
    *
    * An update is needed when there are packages that are:

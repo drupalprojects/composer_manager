@@ -231,6 +231,14 @@ class PackageManagerTest extends UnitTestCase {
   }
 
   /**
+   * @covers ::needsComposerInstall
+   */
+  public function testNeedsComposerInstall() {
+    $needs_install = $this->manager->needsComposerInstall();
+    $this->assertEquals(FALSE, $needs_install);
+  }
+
+  /**
    * @covers ::needsComposerUpdate
    */
   public function testNeedsComposerUpdate() {

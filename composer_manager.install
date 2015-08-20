@@ -34,7 +34,14 @@ function composer_manager_requirements($phase) {
 
   /* @var $package_manager Drupal\composer_manager\PackageManager */
   $package_manager = \Drupal::service('composer_manager.package_manager');
-  if ($package_manager->needsComposerUpdate()) {
+  if ($package_manager->needsComposerInstall()) {
+    $instructions = t('Run <code>composer drupal-install</code> on the command line to install dependencies.');
+
+    $requirements['composer_manager']['value'] = t('Composer install needed');
+    $requirements['composer_manager']['description'] = $instructions;
+    $requirements['composer_manager']['severity'] = REQUIREMENT_ERROR;
+  }
+  elseif ($package_manager->needsComposerUpdate()) {
     $instructions = t('Run <code>composer drupal-update</code> on the command line to update dependencies.');
 
     $requirements['composer_manager']['value'] = t('Composer update needed');
