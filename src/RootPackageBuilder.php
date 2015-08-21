@@ -103,6 +103,8 @@ class RootPackageBuilder implements RootPackageBuilderInterface {
       'scripts' => $core_package['scripts'],
       'autoload' => $this->rebaseAutoloadPaths($core_package['autoload']),
       'config' => [
+        // Optimizations for people who commit vendor/ to git. See #2176265 and
+        // https://getcomposer.org/doc/faqs/should-i-commit-the-dependencies-in-my-vendor-directory.md
         'preferred-install' => 'dist',
         'autoloader-suffix' => 'Drupal8',
       ],
