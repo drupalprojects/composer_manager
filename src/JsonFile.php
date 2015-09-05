@@ -7,8 +7,6 @@
 
 namespace Drupal\composer_manager;
 
-use Drupal\Component\Utility\SafeMarkup;
-
 /**
  * Reads and writes json files.
  */
@@ -25,17 +23,17 @@ final class JsonFile {
    */
   public static function read($filename) {
     if (!is_readable($filename)) {
-      throw new \RuntimeException(SafeMarkup::format('@filename is not readable.', ['@filename' => $filename]));
+      throw new \RuntimeException(sprintf('%s is not readable.', $filename));
     }
 
     $json = file_get_contents($filename);
     if ($json === FALSE) {
-      throw new \RuntimeException(t('Could not read @filename', ['@filename' => $filename]));
+      throw new \RuntimeException(sprintf('Could not read %s', $filename));
     }
 
     $data = json_decode($json, TRUE);
     if (JSON_ERROR_NONE !== json_last_error()) {
-      throw new \UnexpectedValueException('Could not decode JSON: ' . self::getLastErrorMessage());
+      throw new \UnexpectedValueException('Could not decode JSON: ' . json_last_error_msg());
     }
 
     return $data;
@@ -57,7 +55,7 @@ final class JsonFile {
    */
   public static function write($filename, array $data) {
     if (!is_writable($filename)) {
-      throw new \RuntimeException(SafeMarkup::format('@filename is not writable.', ['@filename' => $filename]));
+      throw new \RuntimeException(sprintf('%s is not writable.', $filename));
     }
 
     // Strip empty config elements.
@@ -69,44 +67,15 @@ final class JsonFile {
 
     $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     if (JSON_ERROR_NONE !== json_last_error()) {
-      throw new \UnexpectedValueException('Could not encode JSON: ' . self::getLastErrorMessage());
+      throw new \UnexpectedValueException('Could not encode JSON: ' . json_last_error_msg());
     }
 
     $bytes = file_put_contents($filename, $json);
     if ($bytes === FALSE) {
-      throw new \RuntimeException(SafeMarkup::format('Could not write to @filename', ['@filename' => $filename]));
+      throw new \RuntimeException(sprintf('Could not write to %s', $filename));
     }
 
     return $bytes;
-  }
-
-  /**
-   * Returns a human readable json error.
-   *
-   * @return string
-   *   The human readable json error.
-   */
-  public static function getLastErrorMessage()
-  {
-    if (function_exists('json_last_error_msg')) {
-      // PHP 5.5 and later have a built-in function for this.
-      return json_last_error_msg();
-    }
-
-    switch (json_last_error()) {
-      case JSON_ERROR_DEPTH:
-        return 'Maximum stack depth exceeded';
-      case JSON_ERROR_STATE_MISMATCH:
-        return 'Underflow or the modes mismatch';
-      case JSON_ERROR_CTRL_CHAR:
-        return 'Unexpected control character found';
-      case JSON_ERROR_SYNTAX:
-        return 'Syntax error, malformed JSON';
-      case JSON_ERROR_UTF8:
-        return 'Malformed UTF-8 characters, possibly incorrectly encoded';
-      default:
-        return 'Unknown error';
-    }
   }
 
 }
