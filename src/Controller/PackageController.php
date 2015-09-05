@@ -7,19 +7,21 @@
 
 namespace Drupal\composer_manager\Controller;
 
-use Drupal\composer_manager\Form\RebuildForm;
 use Drupal\composer_manager\PackageManagerInterface;
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Component\Utility\Xss;
-use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Controller for displaying the list of required packages.
  */
-class PackageController extends ControllerBase {
+class PackageController implements ContainerInjectionInterface {
+
+  use StringTranslationTrait;
 
   /**
    * The module handler.
@@ -46,11 +48,16 @@ class PackageController extends ControllerBase {
    * Constructs a PackageController object.
    *
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
+   *   The module handler.
    * @param \Drupal\composer_manager\PackageManagerInterface $package_manager
+   *   The package manager.
+   * @param \Drupal\Core\StringTranslation\TranslationInterface $string_translation
+   *   The string translation service.
    */
-  public function __construct(ModuleHandlerInterface $module_handler, PackageManagerInterface $package_manager) {
+  public function __construct(ModuleHandlerInterface $module_handler, PackageManagerInterface $package_manager, TranslationInterface $string_translation) {
     $this->moduleHandler = $module_handler;
     $this->packageManager = $package_manager;
+    $this->setStringTranslation($string_translation);
   }
 
   /**
@@ -59,7 +66,8 @@ class PackageController extends ControllerBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('module_handler'),
-      $container->get('composer_manager.package_manager')
+      $container->get('composer_manager.package_manager'),
+      $container->get('string_translation')
     );
   }
 
