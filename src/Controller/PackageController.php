@@ -86,16 +86,28 @@ class PackageController extends ControllerBase {
 
     $rows = [];
     foreach ($packages as $package_name => $package) {
-      // Prepare the package name and description.
+      $package_column = [];
       if (!empty($package['homepage'])) {
-        $options = ['attributes' => ['target' => '_blank']];
-        $name = $this->l($package_name, Url::fromUri($package['homepage']), $options);
+        $package_column[] = [
+          '#type' => 'link',
+          '#title' => $package_name,
+          '#url' => Url::fromUri($package['homepage']),
+          '#options' => [
+            'attributes' => ['target' => '_blank'],
+          ],
+        ];
       }
       else {
-        $name = SafeMarkup::checkPlain($package_name);
+        $package_column[] = [
+          '#plain_text' => $package_name,
+        ];
       }
       if (!empty($package['description'])) {
-        $name .= '<div class="description">' . SafeMarkup::checkPlain($package['description']) . '</div>';
+        $package_column[] = [
+          '#prefix' => '<div class="description">',
+          '#plain_text' => $package['description'],
+          '#suffix' => '</div>',
+        ];
       }
 
       // Prepare the installed and required versions.
@@ -114,9 +126,13 @@ class PackageController extends ControllerBase {
       $rows[$package_name] = [
         'class' => $class,
         'data' => [
-          'package' => SafeMarkup::set($name),
+          'package' => [
+            'data' => $package_column,
+          ],
           'installed_version' => $installed_version,
-          'required_version' => SafeMarkup::set($required_version),
+          'required_version' => [
+            'data' => $required_version,
+          ],
         ],
       ];
     }
@@ -147,15 +163,15 @@ class PackageController extends ControllerBase {
   }
 
   /**
-   * Builds the required version column.
+   * Builds the render array for the required version column.
    *
    * @param string $contraint
    *   The package constraint.
    * @param array $required_by
    *   The names of dependent packages.
    *
-   * @return string
-   *   The requirements string in HTML format.
+   * @return array
+   *   The requirements render array.
    */
   protected function buildRequiredVersion($constraint, array $required_by) {
     // Filter out non-Drupal packages.
@@ -186,18 +202,25 @@ class PackageController extends ControllerBase {
           $modules[] = $this->t('Drupal');
         }
         elseif (isset($this->moduleData[$module_name])) {
-          $modules[] = SafeMarkup::checkPlain($this->moduleData[$module_name]['name']);
+          $modules[] = $this->moduleData[$module_name]['name'];
         }
         else {
-          $modules[] = SafeMarkup::checkPlain($module_name);
+          $modules[] = $module_name;
         }
       }
 
       $description = $this->t('Required by: ') . join(', ', $modules);
     }
 
-    $required_version = $constraint;
-    $required_version .= '<div class="description">' . $description . '</div>';
+    $required_version = [];
+    $required_version[] = [
+      '#plain_text' => $constraint,
+    ];
+    $required_version[] = [
+      '#prefix' => '<div class="description">',
+      '#plain_text' => $description,
+      '#suffix' => '</div>',
+    ];
 
     return $required_version;
   }
