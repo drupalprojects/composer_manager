@@ -149,6 +149,7 @@ class RootPackageBuilderTest extends UnitTestCase {
     $this->assertArrayHasKey('pre-autoload-dump', $root_package['scripts']);
     $this->assertArrayHasKey('post-autoload-dump', $root_package['scripts']);
     $this->assertArrayHasKey('post-install-cmd', $root_package['scripts']);
+    $this->assertArrayHasKey('post-update-cmd', $root_package['scripts']);
     $this->assertArrayHasKey('drupal-rebuild', $root_package['scripts']);
     $this->assertArrayHasKey('drupal-update', $root_package['scripts']);
     $this->assertArrayHasKey('drupal-install', $root_package['scripts']);
