@@ -7,7 +7,7 @@ if (PHP_SAPI !== 'cli') {
 
 $root = find_root();
 if (!$root) {
-  echo 'ERROR: Drupal root not found. This command must be run fron inside a Drupal installation.' . PHP_EOL;
+  echo 'ERROR: Drupal root not found. This command must be run from inside a Drupal installation.' . PHP_EOL;
   exit;
 }
 
@@ -22,8 +22,8 @@ echo 'Composer Manager has been successfuly initialized.' . PHP_EOL;
  * Returns the absolute path to Drupal's root directory.
  */
 function find_root() {
-  $currentPath = __DIR__ . '/';
-  $relativePath = '../../../';
+  $currentPath = getcwd() . '/';
+  $relativePath = '';
   $rootPath = '';
   $found = FALSE;
   while (!$found) {
