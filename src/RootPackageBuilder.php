@@ -120,10 +120,7 @@ class RootPackageBuilder implements RootPackageBuilderInterface {
     // Re-add our commands so that they work on the next run.
     $src_path = str_replace($this->root . '/', '', __DIR__);
     $root_package['autoload']['psr-4']['Drupal\\composer_manager\\Composer\\'] =  $src_path . '/Composer';
-    $root_package['scripts']['post-install-cmd'] = 'Drupal\\composer_manager\\Composer\\Command::rewriteAutoload';
-    $root_package['scripts']['post-update-cmd'] = 'Drupal\\composer_manager\\Composer\\Command::rewriteAutoload';
     $root_package['scripts']['drupal-rebuild'] = 'Drupal\\composer_manager\\Composer\\Command::rebuild';
-    $root_package['scripts']['drupal-install'] = 'Drupal\\composer_manager\\Composer\\Command::install';
     $root_package['scripts']['drupal-update'] = 'Drupal\\composer_manager\\Composer\\Command::update';
 
     return $root_package;

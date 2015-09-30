@@ -28,7 +28,7 @@ function find_root() {
   $found = FALSE;
   while (!$found) {
     $rootPath = $currentPath . $relativePath;
-    if (is_dir($rootPath . 'core/vendor')) {
+    if (is_dir($rootPath . 'vendor')) {
       $found = TRUE;
       break;
     }

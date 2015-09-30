@@ -6,10 +6,7 @@ Installation
 - Run the module's init.php script on the command line
   (`php scripts/init.php` from inside the composer_manager module directory).
   This registers the module's Composer command for Drupal core.
-- Run `composer drupal-install` from the root of your Drupal directory.
-
-Note that once installation has completed you can run phpunit only from the root:
-`./vendor/bin/phpunit -c core`
+- Run `composer drupal-update` from the root of your Drupal directory.
 
 Workflow
 --------

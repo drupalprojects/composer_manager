@@ -102,28 +102,26 @@ class PackageManager implements PackageManagerInterface {
 
       // If composer install was never run there won't be a vendor directory,
       // in which case it's pointless to look for installed packages there.
-      if (!$this->needsComposerInstall()) {
-        $installed_packages = JsonFile::read($this->root . '/vendor/composer/installed.json');
-        foreach ($installed_packages as $package) {
-          $package_name = $package['name'];
-          if (!isset($packages[$package_name])) {
-            // The installed package is a dependency of a dependency, or no longer
-            // required. Add it in order to inform the end-user.
-            $packages[$package_name] = [
-              'constraint' => '',
-            ];
-          }
-
-          // Add additional information available only for installed packages.
-          $packages[$package_name] += [
-            'description' => !empty($package['description']) ? $package['description'] : '',
-            'homepage' => !empty($package['homepage']) ? $package['homepage'] : '',
-            'require' => !empty($package['require']) ? $package['require'] : [],
-            'version' => $package['version'],
+      $installed_packages = JsonFile::read($this->root . '/vendor/composer/installed.json');
+      foreach ($installed_packages as $package) {
+        $package_name = $package['name'];
+        if (!isset($packages[$package_name])) {
+          // The installed package is a dependency of a dependency, or no longer
+          // required. Add it in order to inform the end-user.
+          $packages[$package_name] = [
+            'constraint' => '',
           ];
-          if ($package['version'] == 'dev-master') {
-            $packages[$package_name]['version'] .= '#' . $package['source']['reference'];
-          }
+        }
+
+        // Add additional information available only for installed packages.
+        $packages[$package_name] += [
+          'description' => !empty($package['description']) ? $package['description'] : '',
+          'homepage' => !empty($package['homepage']) ? $package['homepage'] : '',
+          'require' => !empty($package['require']) ? $package['require'] : [],
+          'version' => $package['version'],
+        ];
+        if ($package['version'] == 'dev-master') {
+          $packages[$package_name]['version'] .= '#' . $package['source']['reference'];
         }
       }
 
@@ -194,13 +192,6 @@ class PackageManager implements PackageManagerInterface {
     $packages['composer/installers']['required_by'] = ['drupal/core'];
 
     return $packages;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function needsComposerInstall() {
-    return !is_dir($this->root . '/vendor');
   }
 
   /**

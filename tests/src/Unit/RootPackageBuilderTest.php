@@ -145,14 +145,11 @@ class RootPackageBuilderTest extends UnitTestCase {
     // Confirm that prefer-stable was resolved.
     $this->assertEquals(FALSE, $root_package['prefer-stable']);
     // Confirm the expected scripts.
-    $this->assertCount(6, $root_package['scripts']);
+    $this->assertCount(4, $root_package['scripts']);
     $this->assertArrayHasKey('pre-autoload-dump', $root_package['scripts']);
     $this->assertArrayHasKey('post-autoload-dump', $root_package['scripts']);
-    $this->assertArrayHasKey('post-install-cmd', $root_package['scripts']);
-    $this->assertArrayHasKey('post-update-cmd', $root_package['scripts']);
     $this->assertArrayHasKey('drupal-rebuild', $root_package['scripts']);
     $this->assertArrayHasKey('drupal-update', $root_package['scripts']);
-    $this->assertArrayHasKey('drupal-install', $root_package['scripts']);
     // Confirm the autoload paths.
     $expected = [
       'psr-4' => [
