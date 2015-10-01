@@ -28,22 +28,9 @@ class PackageManagerTest extends UnitTestCase {
    * @var array
    */
   protected $packages = [
-    'root' => [
-      'name' => 'drupal/core',
-      'type' => 'drupal-core',
-      'require' => [
-        'symfony/css-selector' => '2.6.*',
-        'symfony/config' => '2.6.*',
-        'symfony/intl' => '2.6.*',
-        'symfony/dependency-injection' => '2.6.*',
-      ],
-    ],
     'core' => [
       'name' => 'drupal/core',
       'type' => 'drupal-core',
-      'require' => [
-        'symfony/dependency-injection' => '2.6.*',
-      ],
     ],
     'extension' => [
       'commerce_kickstart' => [
@@ -139,15 +126,8 @@ class PackageManagerTest extends UnitTestCase {
       ],
     ];
     $root = vfsStream::setup('drupal', null, $structure);
-    // Mock the root package builder and make it return our prebuilt fixture.
-    $root_package_builder = $this->getMockBuilder('Drupal\composer_manager\RootPackageBuilderInterface')
-      ->disableOriginalConstructor()
-      ->getMock();
-    $root_package_builder->expects($this->any())
-      ->method('build')
-      ->will($this->returnValue($this->packages['root']));
 
-    $this->manager = new PackageManager('vfs://drupal', $root_package_builder);
+    $this->manager = new PackageManager('vfs://drupal');
 
   }
 
@@ -196,33 +176,6 @@ class PackageManagerTest extends UnitTestCase {
         'require' => [],
         'required_by' => ['drupal/test1'],
         'version' => '',
-      ],
-      'symfony/dependency-injection' => [
-        'constraint' => '2.6.*',
-        'description' => 'Symfony DependencyInjection Component',
-        'homepage' => 'http://symfony.com',
-        'require' => [],
-        'required_by' => ['drupal/core'],
-        'version' => 'v2.6.3',
-      ],
-      'symfony/event-dispatcher' => [
-        'constraint' => '',
-        'description' => 'Symfony EventDispatcher Component',
-        'homepage' => 'http://symfony.com',
-        'require' => ['symfony/yaml' => 'dev-master'],
-        'required_by' => [],
-        'version' => 'v2.6.3',
-      ],
-      'symfony/yaml' => [
-        'constraint' => 'dev-master',
-        'description' => '',
-        'homepage' => '',
-        'require' => [],
-        'required_by' => ['symfony/event-dispatcher'],
-        'version' => 'dev-master#3346fc090a3eb6b53d408db2903b241af51dcb20',
-      ],
-      'composer/installers' => [
-        'required_by' => ['drupal/core'],
       ],
     ];
 

@@ -55,16 +55,10 @@ class Command {
     require __DIR__ . '/../JsonFile.php';
     require __DIR__ . '/../PackageManagerInterface.php';
     require __DIR__ . '/../PackageManager.php';
-    require __DIR__ . '/../RootPackageBuilderInterface.php';
-    require __DIR__ . '/../RootPackageBuilder.php';
-
     // YAML discovery in core uses FileCache which is not available.
     FileCacheFactory::setConfiguration(['default' => ['class' => '\Drupal\Component\FileCache\NullFileCache']]);
 
-    $root_package_builder = new \Drupal\composer_manager\RootPackageBuilder($root);
-    $package_manager = new \Drupal\composer_manager\PackageManager($root, $root_package_builder);
-
-    return $package_manager;
+    return new \Drupal\composer_manager\PackageManager($root);
   }
 
 }

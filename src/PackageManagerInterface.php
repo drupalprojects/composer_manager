@@ -36,8 +36,9 @@ interface PackageManagerInterface {
   /**
    * Returns the required packages.
    *
-   * This includes all requirements from a freshly built root package, as well
-   * as any previously installed packages that are no longer required.
+   * This includes all extension requirements as well as any previously
+   * installed packages that are no longer required.
+   * The core requirements are not listed, for brevity.
    *
    * @return array
    *   An array of packages, keyed by package name, with the following keys:
@@ -65,12 +66,7 @@ interface PackageManagerInterface {
   public function needsComposerUpdate();
 
   /**
-   * Rebuilds the root package.
-   *
-   * The root package is built by adding the requirements of each extension
-   * to the core package requirements.
-   *
-   * @see \Drupal\composer_manager\RootPackageBuilder
+   * Rebuilds the root package by merging in the extension requirements.
    */
   public function rebuildRootPackage();
 

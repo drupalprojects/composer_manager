@@ -20,13 +20,6 @@ class PackageManager implements PackageManagerInterface {
   protected $root;
 
   /**
-   * The root package builder.
-   *
-   * @var \Drupal\composer_manager\RootPackageBuilderInterface
-   */
-  protected $rootPackageBuilder;
-
-  /**
    * A cache of loaded packages.
    *
    * @var array
@@ -37,11 +30,10 @@ class PackageManager implements PackageManagerInterface {
    * Constructs a PackageManager object.
    *
    * @param string $root
-   * @param \Drupal\composer_manager\RootPackageBuilderInterface $root_package_builder
+   *   The drupal root.
    */
-  public function __construct($root, RootPackageBuilderInterface $root_package_builder) {
+  public function __construct($root) {
     $this->root = $root;
-    $this->rootPackageBuilder = $root_package_builder;
   }
 
   /**
@@ -75,7 +67,10 @@ class PackageManager implements PackageManagerInterface {
       foreach ($extensions as $extension_name => $extension) {
         $filename = $this->root . '/' . $extension->getPath() . '/composer.json';
         if (is_readable($filename)) {
-          $this->packages['extension'][$extension_name] = JsonFile::read($filename);
+          $extension_package = JsonFile::read($filename);
+          if (!empty($extension_package['require']) || !empty($extension_package['require-dev'])) {
+            $this->packages['extension'][$extension_name] = JsonFile::read($filename);
+          }
         }
       }
     }
@@ -88,29 +83,24 @@ class PackageManager implements PackageManagerInterface {
    */
   public function getRequiredPackages() {
     if (!isset($this->packages['required'])) {
-      // The root package on disk might not be up to date, build a new one.
       $core_package = $this->getCorePackage();
-      $extension_packages = $this->getExtensionPackages();
-      $root_package = $this->rootPackageBuilder->build($core_package, $extension_packages);
+      $merged_extension_package = $this->buildMergedExtensionPackage();
 
       $packages = [];
-      foreach ($root_package['require'] as $package_name => $constraint) {
-        $packages[$package_name] = [
-          'constraint' => $constraint,
-        ];
+      foreach ($merged_extension_package['require'] as $package_name => $constraint) {
+        if (substr($package_name, 0, 7) != 'drupal/') {
+          // Skip Drupal module requirements, add the rest.
+          $packages[$package_name] = [
+            'constraint' => $constraint,
+          ];
+        }
       }
 
-      // If composer install was never run there won't be a vendor directory,
-      // in which case it's pointless to look for installed packages there.
       $installed_packages = JsonFile::read($this->root . '/vendor/composer/installed.json');
       foreach ($installed_packages as $package) {
         $package_name = $package['name'];
         if (!isset($packages[$package_name])) {
-          // The installed package is a dependency of a dependency, or no longer
-          // required. Add it in order to inform the end-user.
-          $packages[$package_name] = [
-            'constraint' => '',
-          ];
+          continue;
         }
 
         // Add additional information available only for installed packages.
@@ -160,36 +150,15 @@ class PackageManager implements PackageManagerInterface {
     ksort($packages);
 
     // Add information about dependent packages.
-    $core_package = $this->getCorePackage();
     $extension_packages = $this->getExtensionPackages();
     foreach ($packages as $package_name => $package) {
-      // Detect Drupal dependents.
-      if (isset($core_package['require'][$package_name])) {
-        $packages[$package_name]['required_by'] = [$core_package['name']];
-      }
-      else {
-        foreach ($extension_packages as $extension_name => $extension_package) {
-          if (isset($extension_package['require'][$package_name])) {
-            $packages[$package_name]['required_by'] = [$extension_package['name']];
-            break;
-          }
-        }
-      }
-
-      // Detect inter-package dependencies.
-      foreach ($package['require'] as $dependency_name => $constraint) {
-        if (isset($packages[$dependency_name])) {
-          $packages[$dependency_name]['required_by'][] = $package_name;
-          if (empty($packages[$dependency_name]['constraint'])) {
-            $packages[$dependency_name]['constraint'] = $constraint;
-          }
+      foreach ($extension_packages as $extension_name => $extension_package) {
+        if (isset($extension_package['require'][$package_name])) {
+          $packages[$package_name]['required_by'] = [$extension_package['name']];
+          break;
         }
       }
     }
-
-    // composer/installers is special, it's added by the RootPackageBuilder but
-    // isn't present in the core or extension packages.
-    $packages['composer/installers']['required_by'] = ['drupal/core'];
 
     return $packages;
   }
@@ -213,10 +182,81 @@ class PackageManager implements PackageManagerInterface {
    * {@inheritdoc}
    */
   public function rebuildRootPackage() {
-    $core_package = $this->getCorePackage();
-    $extension_packages = $this->getExtensionPackages();
-    $root_package = $this->rootPackageBuilder->build($core_package, $extension_packages);
+    $root_package = JsonFile::read($this->root . '/composer.json');
+    // Rebuild the merged keys.
+    $merged_extension_package = $this->buildMergedExtensionPackage();
+    $root_package['require'] = [
+      'composer/installers' => '^1.0.21',
+      'wikimedia/composer-merge-plugin' => '^1.3.0',
+    ] + $merged_extension_package['require'];
+    $root_package['require-dev'] = $merged_extension_package['require-dev'];
+    $root_package['replace'] = [
+      'drupal/core' => '~8.0',
+    ] + $merged_extension_package['replace'];
+    // Ensure the presence of the Drupal Packagist repository.
+    // @todo Remove once Drupal Packagist moves to d.o and gets added to
+    // the root package by default.
+    $root_package['repositories'] = [
+      [
+        'type' => 'composer',
+        'url' => 'https://packagist.drupal-composer.org',
+      ],
+    ];
+
     JsonFile::write($this->root . '/composer.json', $root_package);
+  }
+
+  /**
+   * Builds a package containing the merged fields of all extension packages.
+   *
+   * @return array
+   *   An array with the follwing keys:
+   *   - 'require': The merged requirements
+   *   - 'require-dev': The merged dev requirements.
+   *   - 'replace': The merged replace list.
+   */
+  protected function buildMergedExtensionPackage() {
+    $package = [
+      'require' => [],
+      'require-dev' => [],
+      'replace' => [],
+    ];
+    $keys = array_keys($package);
+    foreach ($this->getExtensionPackages() as $extension_package) {
+      foreach ($keys as $key) {
+        if (isset($extension_package[$key])) {
+          $package[$key] = array_merge($extension_package[$key], $package[$key]);
+        }
+      }
+    }
+    $package['require'] = $this->filterPlatformPackages($package['require']);
+    $package['require-dev'] = $this->filterPlatformPackages($package['require-dev']);
+
+    return $package;
+  }
+
+  /**
+   * Removes platform packages from the requirements.
+   *
+   * Platform packages include 'php' and its various extensions ('ext-curl',
+   * 'ext-intl', etc). Drupal modules have their own methods for raising the PHP
+   * requirement ('php' key in $extension.info.yml) or requiring additional
+   * PHP extensions (hook_requirements()).
+   *
+   * @param array $requirements
+   *   The requirements.
+   *
+   * @return array
+   *   The filtered requirements array.
+   */
+  protected function filterPlatformPackages($requirements) {
+    foreach ($requirements as $package => $constraint) {
+      if (strpos($package, '/') === FALSE) {
+        unset($requirements[$package]);
+      }
+    }
+
+    return $requirements;
   }
 
 }
