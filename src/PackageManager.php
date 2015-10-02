@@ -193,14 +193,13 @@ class PackageManager implements PackageManagerInterface {
     $root_package['replace'] = [
       'drupal/core' => '~8.0',
     ] + $merged_extension_package['replace'];
+    $root_package['repositories'] = $merged_extension_package['repositories'];
     // Ensure the presence of the Drupal Packagist repository.
     // @todo Remove once Drupal Packagist moves to d.o and gets added to
     // the root package by default.
-    $root_package['repositories'] = [
-      [
-        'type' => 'composer',
-        'url' => 'https://packagist.drupal-composer.org',
-      ],
+    $root_package['repositories'][] = [
+      'type' => 'composer',
+      'url' => 'https://packagist.drupal-composer.org',
     ];
 
     JsonFile::write($this->root . '/composer.json', $root_package);
@@ -220,6 +219,7 @@ class PackageManager implements PackageManagerInterface {
       'require' => [],
       'require-dev' => [],
       'replace' => [],
+      'repositories' => [],
     ];
     $keys = array_keys($package);
     foreach ($this->getExtensionPackages() as $extension_package) {
@@ -231,6 +231,10 @@ class PackageManager implements PackageManagerInterface {
     }
     $package['require'] = $this->filterPlatformPackages($package['require']);
     $package['require-dev'] = $this->filterPlatformPackages($package['require-dev']);
+    $package['repositories'] = array_unique($package['repositories'], SORT_REGULAR);
+    // For some reason array_unique() casts the keys to string, which causes
+    // problems when exported to JSON.
+    $package['repositories'] = array_values($package['repositories']);
 
     return $package;
   }
