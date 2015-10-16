@@ -68,9 +68,15 @@ class PackageManager implements PackageManagerInterface {
         $filename = $this->root . '/' . $extension->getPath() . '/composer.json';
         if (is_readable($filename)) {
           $extension_package = JsonFile::read($filename);
-          if (!empty($extension_package['require']) || !empty($extension_package['require-dev'])) {
-            $this->packages['extension'][$extension_name] = JsonFile::read($filename);
+          // The package must at least have a name and some requirements.
+          if (empty($extension_package['name'])) {
+            continue;
           }
+          if (empty($extension_package['require']) && empty($extension_package['require-dev'])) {
+            continue;
+          }
+
+          $this->packages['extension'][$extension_name] = $extension_package;
         }
       }
     }
