@@ -75,6 +75,8 @@ class PackageManager implements PackageManagerInterface {
           if (empty($extension_package['require']) && empty($extension_package['require-dev'])) {
             continue;
           }
+          // The path is required by rebuildRootPackage().
+          $extension_package['extra']['path'] = $extension->getPath() . '/composer.json';
 
           $this->packages['extension'][$extension_name] = $extension_package;
         }
@@ -189,17 +191,24 @@ class PackageManager implements PackageManagerInterface {
    */
   public function rebuildRootPackage() {
     $root_package = JsonFile::read($this->root . '/composer.json');
-    // Rebuild the merged keys.
-    $merged_extension_package = $this->buildMergedExtensionPackage();
-    $root_package['require'] = [
-      'composer/installers' => '^1.0.21',
-      'wikimedia/composer-merge-plugin' => '^1.3.0',
-    ] + $merged_extension_package['require'];
-    $root_package['require-dev'] = $merged_extension_package['require-dev'];
+    // Initialize known start values. These should match what's already in
+    // the root composer.json shipped with Drupal.
     $root_package['replace'] = [
       'drupal/core' => '~8.0',
-    ] + $merged_extension_package['replace'];
-    $root_package['repositories'] = $merged_extension_package['repositories'];
+    ];
+    $root_package['repositories'] = [];
+    $root_package['extra']['merge-plugin']['include'] = [
+      'core/composer.json',
+    ];
+    // Add the discovered extensions to the replace list so that they doesn't
+    // get redownloaded if required by another package.
+    foreach ($this->getExtensionPackages() as $extension_package) {
+      $version = '8.*';
+      if (isset($extension_package['extra']['branch-alias']['dev-master'])) {
+        $version = $extension_package['extra']['branch-alias']['dev-master'];
+      }
+      $root_package['replace'][$extension_package['name']] = $version;
+    }
     // Ensure the presence of the Drupal Packagist repository.
     // @todo Remove once Drupal Packagist moves to d.o and gets added to
     // the root package by default.
@@ -207,6 +216,10 @@ class PackageManager implements PackageManagerInterface {
       'type' => 'composer',
       'url' => 'https://packagist.drupal-composer.org',
     ];
+    // Add each discovered extension to the merge list.
+    foreach ($this->getExtensionPackages() as $extension_package) {
+      $root_package['extra']['merge-plugin']['include'][] = $extension_package['extra']['path'];
+    }
 
     JsonFile::write($this->root . '/composer.json', $root_package);
   }
@@ -214,29 +227,20 @@ class PackageManager implements PackageManagerInterface {
   /**
    * Builds a package containing the merged fields of all extension packages.
    *
+   * Used for reporting purposes only (getRequiredPackages()).
+   *
    * @return array
    *   An array with the follwing keys:
    *   - 'require': The merged requirements
    *   - 'require-dev': The merged dev requirements.
-   *   - 'replace': The merged replace list.
    */
   protected function buildMergedExtensionPackage() {
     $package = [
       'require' => [],
       'require-dev' => [],
-      'replace' => [],
-      'repositories' => [],
     ];
     $keys = array_keys($package);
     foreach ($this->getExtensionPackages() as $extension_package) {
-      // Add the extension to the replace list so that it doesn't get
-      // redownloaded if another package requires it.
-      $version = '8.*';
-      if (isset($extension_package['extra']['branch-alias']['dev-master'])) {
-        $version = $extension_package['extra']['branch-alias']['dev-master'];
-      }
-      $package['replace'][$extension_package['name']] = $version;
-
       foreach ($keys as $key) {
         if (isset($extension_package[$key])) {
           $package[$key] = array_merge($extension_package[$key], $package[$key]);
@@ -245,10 +249,6 @@ class PackageManager implements PackageManagerInterface {
     }
     $package['require'] = $this->filterPlatformPackages($package['require']);
     $package['require-dev'] = $this->filterPlatformPackages($package['require-dev']);
-    $package['repositories'] = array_unique($package['repositories'], SORT_REGULAR);
-    // For some reason array_unique() casts the keys to string, which causes
-    // problems when exported to JSON.
-    $package['repositories'] = array_values($package['repositories']);
 
     return $package;
   }
