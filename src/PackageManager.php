@@ -229,6 +229,14 @@ class PackageManager implements PackageManagerInterface {
     ];
     $keys = array_keys($package);
     foreach ($this->getExtensionPackages() as $extension_package) {
+      // Add the extension to the replace list so that it doesn't get
+      // redownloaded if another package requires it.
+      $version = '8.*';
+      if (isset($extension_package['extra']['branch-alias']['dev-master'])) {
+        $version = $extension_package['extra']['branch-alias']['dev-master'];
+      }
+      $package['replace'][$extension_package['name']] = $version;
+
       foreach ($keys as $key) {
         if (isset($extension_package[$key])) {
           $package[$key] = array_merge($extension_package[$key], $package[$key]);
