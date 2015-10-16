@@ -125,7 +125,7 @@ class PackageManagerTest extends UnitTestCase {
         ],
       ],
     ];
-    $root = vfsStream::setup('drupal', null, $structure);
+    vfsStream::setup('drupal', null, $structure);
 
     $this->manager = new PackageManager('vfs://drupal');
 

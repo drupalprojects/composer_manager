@@ -91,9 +91,7 @@ class PackageManager implements PackageManagerInterface {
    */
   public function getRequiredPackages() {
     if (!isset($this->packages['required'])) {
-      $core_package = $this->getCorePackage();
       $merged_extension_package = $this->buildMergedExtensionPackage();
-
       $packages = [];
       foreach ($merged_extension_package['require'] as $package_name => $constraint) {
         if (substr($package_name, 0, 7) != 'drupal/') {
@@ -230,7 +228,7 @@ class PackageManager implements PackageManagerInterface {
    * Used for reporting purposes only (getRequiredPackages()).
    *
    * @return array
-   *   An array with the follwing keys:
+   *   An array with the following keys:
    *   - 'require': The merged requirements
    *   - 'require-dev': The merged dev requirements.
    */
