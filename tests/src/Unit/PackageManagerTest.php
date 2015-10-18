@@ -38,17 +38,26 @@ class PackageManagerTest extends UnitTestCase {
         'require' => [
           'symfony/css-selector' => '2.6.*',
         ],
+        'extra' => [
+          'path' => 'profiles/commerce_kickstart/composer.json',
+        ],
       ],
       'test1' => [
         'name' => 'drupal/test1',
         'require' => [
           'symfony/intl' => '2.6.*',
         ],
+        'extra' => [
+          'path' => 'modules/test1/composer.json',
+        ],
       ],
       'test2' => [
         'name' => 'drupal/test2',
         'require' => [
           'symfony/config' => '2.6.*',
+        ],
+        'extra' => [
+          'path' => 'sites/all/modules/test2/composer.json',
         ],
       ],
     ],
