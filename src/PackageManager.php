@@ -63,6 +63,11 @@ class PackageManager implements PackageManagerInterface {
       $modules = $listing->scan('module');
       $extensions = $profiles + $modules;
 
+      $installed_packages = $this->getInstalledPackages();
+      $installed_packages = array_map(function ($package) {
+        return $package['name'];
+      }, $installed_packages);
+
       $this->packages['extension'] = [];
       foreach ($extensions as $extension_name => $extension) {
         $filename = $this->root . '/' . $extension->getPath() . '/composer.json';
@@ -75,6 +80,10 @@ class PackageManager implements PackageManagerInterface {
           if (empty($extension_package['require']) && empty($extension_package['require-dev'])) {
             continue;
           }
+          if (in_array($extension_package['name'], $installed_packages)) {
+            // This extension is already managed with Composer.
+            continue;
+          }
           // The path is required by rebuildRootPackage().
           $extension_package['extra']['path'] = $extension->getPath() . '/composer.json';
 
@@ -84,6 +93,17 @@ class PackageManager implements PackageManagerInterface {
     }
 
     return $this->packages['extension'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getInstalledPackages() {
+    if (!isset($this->packages['installed'])) {
+      $this->packages['installed'] = JsonFile::read($this->root . '/vendor/composer/installed.json');
+    }
+
+    return $this->packages['installed'];
   }
 
   /**
@@ -102,8 +122,7 @@ class PackageManager implements PackageManagerInterface {
         }
       }
 
-      $installed_packages = JsonFile::read($this->root . '/vendor/composer/installed.json');
-      foreach ($installed_packages as $package) {
+      foreach ($this->getInstalledPackages() as $package) {
         $package_name = $package['name'];
         if (!isset($packages[$package_name])) {
           continue;

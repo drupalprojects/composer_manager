@@ -157,6 +157,14 @@ class PackageManagerTest extends UnitTestCase {
   }
 
   /**
+   * @covers ::getInstalledPackages
+   */
+  public function testInstalledPackages() {
+    $installed_packages = $this->manager->getInstalledPackages();
+    $this->assertEquals($this->packages['installed'], $installed_packages);
+  }
+
+  /**
    * @covers ::getRequiredPackages
    * @covers ::processRequiredPackages
    */
