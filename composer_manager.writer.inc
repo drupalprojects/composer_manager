@@ -82,6 +82,7 @@ function composer_manager_build_json(array $data) {
       'suggest',
       'repositories',
       'prefer-stable',
+      'config',
     );
 
     foreach ($to_merge as $key) {
