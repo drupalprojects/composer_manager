@@ -198,7 +198,7 @@ function composer_manager_put_file($dir_uri, array $json) {
  * @return bool
  */
 function composer_manager_prepare_directory($directory) {
-  if (!file_prepare_directory($directory, FILE_CREATE_DIRECTORY)) {
+  if (!file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
     return FALSE;
   }
   if (0 === strpos($directory, 'public://')) {
