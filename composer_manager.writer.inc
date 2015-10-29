@@ -168,7 +168,7 @@ function composer_manager_put_file($dir_uri, array $json) {
   }
 
   $file_uri = $dir_uri . '/composer.json';
-  if (!@file_put_contents($file_uri, json_encode($json, $json_options))) {
+  if (!@file_put_contents($file_uri, json_encode($json, $json_options) . PHP_EOL)) {
     throw new \RuntimeException(t('Error writing composer.json file: @file', array('@file' => $file_uri)));
   }
 
