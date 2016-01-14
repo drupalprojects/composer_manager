@@ -194,7 +194,7 @@ class PackageController implements ContainerInjectionInterface {
     elseif (empty($drupal_required_by)) {
       // The package is here as a requirement of other packages, list them.
       $constraint = $this->t('N/A');
-      $description = $this->t('Required by: ') . join(', ', $required_by);
+      $description = $this->t('Required by: ') . implode(', ', $required_by);
     }
     else {
       if (!isset($this->moduleData)) {
@@ -217,7 +217,7 @@ class PackageController implements ContainerInjectionInterface {
         }
       }
 
-      $description = $this->t('Required by: ') . join(', ', $modules);
+      $description = $this->t('Required by: ') . implode(', ', $modules);
     }
 
     $required_version = [];
