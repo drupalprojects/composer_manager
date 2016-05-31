@@ -74,7 +74,8 @@ class PackageController implements ContainerInjectionInterface {
    */
   public function page() {
     if (!composer_manager_initialized()) {
-      $message = t("Composer Manager needs to be initialized before usage. Run the module's <code>init.php</code> script on the command line.");
+      $path = drupal_get_path('module', 'composer_manager');
+      $message = t("Composer Manager needs to be initialized before usage. Run <code>php %path/scripts/init.php</code> from the command line.", ['%path' => $path]);
       drupal_set_message($message, 'warning');
       return [];
     }
