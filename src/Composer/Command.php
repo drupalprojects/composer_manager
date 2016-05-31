@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\composer_manager\Composer\Command.
- */
-
 namespace Drupal\composer_manager\Composer;
 
 use Composer\Script\Event;

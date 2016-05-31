@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\composer_manager\Controller\Packages.
- */
-
 namespace Drupal\composer_manager\Controller;
 
 use Drupal\composer_manager\PackageManagerInterface;
