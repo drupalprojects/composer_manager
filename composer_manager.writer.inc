@@ -38,7 +38,7 @@ function composer_manager_fetch_data() {
 }
 
 /**
- * Builds the JSON array ccontaining the combined requirements of each module's
+ * Builds the JSON array containing the combined requirements of each module's
  * composer.json file.
  *
  * @param array $data
@@ -47,99 +47,138 @@ function composer_manager_fetch_data() {
  *   composer_manager_fetch_data() function.
  *
  * @return array
- *   The consolidated JSON array that will be written to a compsoer.json file.
+ *   The consolidated JSON array that will be written to a composer.json file.
  *
  * @throws \RuntimeException
  */
 function composer_manager_build_json(array $data) {
-  $combined = array();
-  foreach ($data as $module => $json) {
+  $combined = array(
+    'require' => array(),
+    'config'  => array(
+      'autoloader-suffix' => 'ComposerManager',
+    ),
+    'prefer-stable' => TRUE,
+  );
 
-    if (!$combined) {
+  $vendor_dir = composer_manager_relative_vendor_dir();
+  if (0 !== strlen($vendor_dir) && 'vendor' !== $vendor_dir) {
+    $combined['config']['vendor-dir'] = $vendor_dir;
+  }
 
-      $combined = array(
-        'require' => array(),
-        'config'  => array(
-          'autoloader-suffix' => 'ComposerManager',
+  // Retrieve JSON map.
+  static $json_map;
+  if (!isset($json_map)) {
+    $cid = 'composer_manager:json_map';
+    if (($cache = cache_get($cid)) && (isset($cache->data)) && is_array($cache->data)) {
+      $json_map = $cache->data;
+    }
+    else {
+      $default_map = array(
+        'properties' => array(),
+        'relative_paths' => array(
+          'keys' => array(),
+          'values' => array(),
         ),
-        'prefer-stable' => TRUE,
       );
 
-      $vendor_dir = composer_manager_relative_vendor_dir();
-      if (0 !== strlen($vendor_dir) && 'vendor' != $vendor_dir) {
-        $combined['config']['vendor-dir'] = $vendor_dir;
+      $json_map = array(
+        'properties' => array(
+          'autoload',
+          'autoload-dev',
+          'config',
+          'conflict',
+          'provide',
+          'prefer-stable',
+          'replace',
+          'repositories',
+          'require',
+          'require-dev',
+          'suggest',
+
+          // Only support the following "extra" properties.
+          // Installers (https://github.com/composer/installers).
+          array('extra', 'installer-paths'),
+
+          // Patches (https://github.com/cweagans/composer-patches).
+          array('extra', 'patches'),
+          array('extra', 'patches-ignore'),
+        ),
+        'relative_paths' => array(
+          'keys' => array(
+            array('extra', 'installer-paths'),
+          ),
+          'values' => array(
+            'autoload',
+            'autoload-dev',
+            array('extra', 'patches'),
+            array('extra', 'patches-ignore'),
+          ),
+        ),
+      );
+
+      // Allow modules to alter JSON map.
+      drupal_alter('composer_json_map', $json_map);
+
+      // Ensure JSON map has default keys so we don't have to do isset() checks.
+      $json_map = drupal_array_merge_deep($default_map, $json_map);
+
+      // Cache JSON map.
+      cache_set($cid, $json_map);
+    }
+  }
+
+  // Iterate over each module's JSON.
+  foreach ($data as $module => $json) {
+    // Merge in mapped JSON properties from the module.
+    foreach ($json_map['properties'] as $parents) {
+      $parents = (array) $parents;
+
+      // Retrieve value from the module's JSON and skip if it doesn't exist.
+      $value = drupal_array_get_nested_value($json, $parents, $key_exists);
+      if (!$key_exists) {
+        continue;
       }
+
+      // Retrieve the existing data.
+      $existing = drupal_array_get_nested_value($combined, $parents, $key_exists);
+
+      // If existing value is an array, type cast module data and merge it in.
+      if (isset($existing) && is_array($existing)) {
+        $value = drupal_array_merge_deep($existing, (array) $value);
+      }
+
+      // Set the value.
+      drupal_array_set_nested_value($combined, $parents, $value, TRUE);
     }
 
-    // @todo Detect duplicates, maybe add an "ignore" list. Figure out if this
-    // encompases all keys that should be merged.
-    $to_merge = array(
-      'require',
-      'require-dev',
-      'conflict',
-      'replace',
-      'provide',
-      'suggest',
-      'repositories',
-      'prefer-stable',
-      'config',
-    );
-
-    foreach ($to_merge as $key) {
-      if (isset($json[$key])) {
-        if (isset($combined[$key]) && is_array($combined[$key])) {
-          $combined[$key] = array_merge($combined[$key], $json[$key]);
+    // Fix property keys and values that contain relative paths.
+    foreach ($json_map['relative_paths'] as $type => $data) {
+      foreach ($data as $parents) {
+        $parents = (array) $parents;
+        $property = &drupal_array_get_nested_value($combined, $parents, $key_exists);
+        if (!$key_exists || !is_array($property)) {
+          continue;
         }
-        else {
-          $combined[$key] = $json[$key];
-        }
-      }
-    }
-
-    $autoload_blocks = array('autoload', 'autoload-dev');
-    foreach ($autoload_blocks as $autoload_block) {
-      $autoload_options = array('psr-0', 'psr-4');
-      foreach ($autoload_options as $option) {
-        if (isset($json[$autoload_block][$option])) {
-          $namespaces = (array) $json[$autoload_block][$option];
-          foreach ($json[$autoload_block][$option] as $namespace => $dirs) {
-            $dirs = (array) $dirs;
-            array_walk($dirs, 'composer_manager_relative_autoload_path', $module);
-            if (!isset($combined[$autoload_block][$option][$namespace])) {
-              $combined[$autoload_block][$option][$namespace] = array();
-            }
-            $combined[$autoload_block][$option][$namespace] = array_merge(
-              $combined[$autoload_block][$option][$namespace], $dirs
-            );
-          }
-        }
-      }
-
-      // Merge in the "classmap" and "files" autoload options.
-      $autoload_options = array('classmap', 'files');
-      foreach ($autoload_options as $option) {
-        if (isset($json[$autoload_block][$option])) {
-          $dirs = (array) $json[$autoload_block][$option];
-          array_walk($dirs, 'composer_manager_relative_autoload_path', $module);
-          if (!isset($combined[$autoload_block][$option])) {
-            $combined[$autoload_block][$option] = array();
-          }
-          $combined[$autoload_block][$option] = array_merge(
-            $combined[$autoload_block][$option], $dirs
-          );
-        }
+        composer_manager_relative_json_property($property, array(
+          'keys' => $type === 'keys',
+          'paths' => array(
+            DRUPAL_ROOT . '/' . drupal_get_path('module', $module),
+          ),
+        ));
       }
     }
 
     // Take the lowest stability.
     if (isset($json['minimum-stability'])) {
-      if (!isset($combined['minimum-stability']) || -1 == composer_manager_compare_stability($json['minimum-stability'], $combined['minimum-stability'])) {
+      if (!isset($combined['minimum-stability']) || composer_manager_compare_stability($json['minimum-stability'], $combined['minimum-stability']) === -1) {
         $combined['minimum-stability'] = $json['minimum-stability'];
       }
     }
   }
 
+  // Allow extensions to alter the composer JSON.
   drupal_alter('composer_json', $combined);
+
   return $combined;
 }
 
@@ -245,16 +284,117 @@ function composer_manager_compare_stability($a, $b) {
 }
 
 /**
+ * Helper function for converting value into a relative path.
+ *
+ * @param mixed $value
+ *   The value to change, passed by reference.
+ * @param $options
+ *   An associative array of additional options, with the following properties:
+ *   - 'depth': Maximum depth of recursion.
+ *   - 'keys': (bool) Flag indicating whether to iterate over the keys of
+ *     $value if it's an array instead of its values.
+ *   - 'paths': (string[]) An array of path prefixes to prepend to $value to
+ *     check for a valid path.
+ *   - 'recurse': When TRUE, the directory scan will recurse the entire tree
+ *     starting at the provided directory. Defaults to TRUE.
+ *
+ * @see composer_manager_build_json()
+ */
+function composer_manager_relative_json_property(&$value, array $options = array()) {
+  static $composer_dir;
+  if (!isset($composer_dir)) {
+    $composer_dir = composer_manager_file_dir();
+  }
+
+  static $vendor_dir;
+  if (!isset($vendor_dir)) {
+    $vendor_dir = composer_manager_relative_dir(composer_manager_vendor_dir(), $composer_dir);
+  }
+
+  static $drupal_root;
+  if (!isset($drupal_root)) {
+    $drupal_root = composer_manager_relative_dir(DRUPAL_ROOT, $composer_dir);
+  }
+
+  $options += array(
+    'depth' => 25,
+    'keys' => FALSE,
+    'paths' => array(),
+    'recurse' => TRUE,
+  );
+
+  // Recurse through array.
+  if ($options['recurse'] && $options['depth'] && is_array($value)) {
+    $options['depth']--;
+    $new_value = array();
+    foreach ($value as $k => &$v) {
+      if ($options['keys']) {
+        composer_manager_relative_json_property($k, $options);
+      }
+      else {
+        composer_manager_relative_json_property($v, $options);
+      }
+      $new_value[$k] = $v;
+    }
+    $value = $new_value;
+  }
+
+  // Immediately return if value is not a string.
+  if (!is_string($value)) {
+    return;
+  }
+
+  // Allow and replace a COMPOSER_DIR constant.
+  if (strpos($value, 'COMPOSER_DIR') === 0) {
+    $value = preg_replace('/\/+/', '/', str_replace('COMPOSER_DIR/', './', $value));
+    return;
+  }
+
+  // Allow and replace a COMPOSER_VENDOR_DIR constant.
+  if (strpos($value, 'COMPOSER_VENDOR_DIR') === 0) {
+    $value = preg_replace('/\/+/', '/', str_replace('COMPOSER_VENDOR_DIR/', "$vendor_dir/", $value));
+    return;
+  }
+
+  // Allow and replace a DRUPAL_ROOT constant.
+  if (strpos($value, 'DRUPAL_ROOT') === 0) {
+    $value = preg_replace('/\/+/', '/', str_replace('DRUPAL_ROOT', "$drupal_root/", $value));
+    return;
+  }
+
+  // Attempt to retrieve an absolute path using the prefixed path and the value.
+  $absolute = FALSE;
+  foreach ($options['paths'] as $path) {
+    $absolute = drupal_realpath("$path/$value");
+    if ($absolute) {
+      break;
+    }
+  }
+
+  // If there still is no valid "to", attempt with just using the value.
+  if (!$absolute) {
+    $absolute = drupal_realpath($value);
+  }
+
+  // If an absolute path was ascertained, change value to a relative path.
+  if ($absolute) {
+    $value = composer_manager_relative_dir($absolute, $composer_dir);
+  }
+}
+
+/**
  * Returns the path for the autoloaded directory or class relative to the
  * directory containing the composer.json file.
+ *
+ * @deprecated Use composer_manager_relative_json_property() instead.
  */
 function composer_manager_relative_autoload_path(&$path, $key, $module) {
-  static $dir_from = NULL;
-  if (NULL === $dir_from) {
-    $dir_from = composer_manager_file_dir();
-  }
-  $dir_to = drupal_realpath(DRUPAL_ROOT . '/' . drupal_get_path('module', $module) . '/' . $path);
-  $path = composer_manager_relative_dir($dir_to, $dir_from);
+  composer_manager_relative_json_property($path, array(
+    'paths' => array(
+      DRUPAL_ROOT . '/' . drupal_get_path('module', $module),
+    ),
+    'recurse' => FALSE,
+  ));
 }
 
 /**
@@ -274,9 +414,9 @@ function composer_manager_relative_vendor_dir() {
 /**
  * Gets the path of the "to" directory relative to the "from" directory.
  *
- * @param array $dir_to
+ * @param string $dir_to
  *   The absolute path of the directory that the relative path refers to.
- * @param array $dir_from
+ * @param string $dir_from
  *   The absolute path of the directory from which the relative path is being
  *   calculated.
  *
