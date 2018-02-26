@@ -232,7 +232,9 @@ function drush_composer_manager_update_files($composer) {
   if (file_exists($autoload_files)) {
     $updated_files = require $autoload_files;
     foreach ($updated_files as $file) {
-      require_once $file;
+      if (file_exists($file)) {
+        require_once $file;
+      }
     }
   }
 }
