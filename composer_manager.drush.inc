@@ -39,7 +39,7 @@ function composer_manager_drush_command() {
  *   Which command to execute on Composer Manager's composer.json file.
  */
 function drush_composer_manager($command = 'install') {
-  $uri = composer_manager_file_dir();
+  $uri = composer_manager_file_dir(TRUE);
   if (!$dir = drupal_realpath($uri)) {
     return drush_set_error(dt('Error resolving path: @uri', array('@uri' => $uri)));
   }

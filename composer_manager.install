@@ -42,7 +42,17 @@ function composer_manager_requirements($phase) {
 
   $t = get_t();
 
-  $file_dir = composer_manager_file_dir();
+  if (variable_get('composer_manager_autobuild_file', 1)) {
+    $file_dir = composer_manager_file_dir();
+  }
+  else {
+    $scheme = file_default_scheme();
+    if (!in_array($scheme, array('public', 'private'))) {
+      $scheme = 'public';
+    }
+    $file_dir = variable_get('composer_manager_file_dir', $scheme . '://composer');
+  }
+
   $vendor_dir = composer_manager_vendor_dir();
 
   $requirements = array(
