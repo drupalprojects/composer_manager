@@ -6,15 +6,6 @@
  */
 
 /**
- * Implements hook_install().
- */
-function composer_manager_install() {
-  // @see composer_manager_beta5_compatibility()
-  $vendor_dir = variable_get('composer_manager_vendor_dir', 'sites/all/vendor');
-  variable_set('composer_manager_vendor_dir', $vendor_dir);
-}
-
-/**
  * Implements hook_uninstall().
  */
 function composer_manager_uninstall() {
