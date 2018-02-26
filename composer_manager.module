@@ -41,7 +41,7 @@ function composer_manager_menu() {
 
   $items['admin/config/system/composer-manager'] = array(
     'title' => 'Composer Manager',
-    'description' => 'View the status of packages managed by Composer and configure the location of the composer.json file and verdor directory.',
+    'description' => 'View the status of packages managed by Composer and configure the location of the composer.json file and vendor directory.',
     'page callback' => 'composer_manager_packages_page',
     'access arguments' => array('administer site configuration'),
     'file' => 'composer_manager.admin.inc',
