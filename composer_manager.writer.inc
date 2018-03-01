@@ -400,9 +400,10 @@ function composer_manager_relative_autoload_path(&$path, $key, $module) {
 /**
  * Returns the vendor directory relative to the composer file directory.
  *
- * @return string
- *
  * @throws \RuntimeException
+ *   If the vendor or file directories cannot be determined.
+ *
+ * @return string
  */
 function composer_manager_relative_vendor_dir() {
   return composer_manager_relative_dir(
